@@ -2,11 +2,22 @@
 using System.Net;
 using System.IO;
 using System;
+using System.Windows.Forms;
+using System.Diagnostics;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace TreeView.Connect
 {
     class Connect
     {
+        private void DisplayLoginError()
+        {
+            string message = "Please enter your correct username and password.";
+            string title = "Login failed";
+            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+
         public void SetUsername(string text)
         {
             this.username = text;
@@ -17,55 +28,100 @@ namespace TreeView.Connect
             this.password = text;
         }
 
-        private void GetData(string token)
+        public bool GetStatus()
         {
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(this.token_URL);
-            using (StreamWriter writer = new StreamWriter(req.GetRequestStream(), Encoding.ASCII))
+            return this.logged_in;
+        }
+
+        public string GetPath(string url, string id)
+        {
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create(String.Format("{0}/{1}", path_URL, url));
+            httpWebRequest.ContentType = "application/json";
+            httpWebRequest.Method = "POST";
+            httpWebRequest.Headers.Add("Authorization", "Bearer " + login_token);
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+
+            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
             {
-                writer.Write("Bearer=" + token);
+                string json = JsonConvert.SerializeObject(new { pathId = id, type = "folder" });
+                streamWriter.Write(json);
+                streamWriter.Flush();
+                streamWriter.Close();
             }
-            HttpWebResponse response;
-            try
+
+            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+
+            if (httpResponse.StatusDescription == "OK")
             {
-                response = (HttpWebResponse)req.GetResponse();
+                Stream dataStream = httpResponse.GetResponseStream();
+                StreamReader reader = new StreamReader(dataStream);
+                string responseFromServer = reader.ReadToEnd();
+                // Display the content.
+                try
+                {
+                    dynamic data = JObject.Parse(responseFromServer);
+                    foreach (JObject item in data["result"]) // <-- Note that here we used JObject instead of usual JProperty
+                    {
+                        foreach (JProperty jp in item.Properties())
+                        {
+                            Debug.WriteLine("kom op:");
+                            Debug.WriteLine(jp.Name);
+                        }
+                    }
+                    return "result";
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                    return e.Message;
+                }
             }
-            catch (Exception e)
-            {
-                return;
-            }
+            return httpResponse.StatusDescription;
         }
 
         public bool LoginRequest()
         {
-            HttpWebRequest req = (HttpWebRequest)WebRequest.Create(this.URL);
-            req.UserAgent = "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.1; .NET CLR 1.0.3705;)";
-            req.Method = "POST";
-            req.Accept = "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8";
-            req.Headers.Add("Accept-Language: en-us,en;q=0.5");
-            req.Headers.Add("Accept-Encoding: gzip,deflate");
-            req.Headers.Add("Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7");
-            req.KeepAlive = true;
-            req.Headers.Add("Keep-Alive: 3155760000");
-            req.Referer = "http://sso.bhmobile.ba/sso/login";
+            HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(this.URL);
+            httpWebRequest.Method = "POST";
+            httpWebRequest.Accept = "application/json";
+            httpWebRequest.ContentType = "application/json";
+            httpWebRequest.KeepAlive = true;
+            httpWebRequest.Headers.Add("Keep-Alive: 3155760000");
 
-            req.ContentType = "application/x-www-form-urlencoded";
-
-            using (StreamWriter writer = new StreamWriter(req.GetRequestStream(), Encoding.ASCII))
+            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
             {
-                writer.Write("username=" + this.username + "&password=" + this.password);
+                string json = JsonConvert.SerializeObject(new { username = this.username, password = this.password });
+                streamWriter.Write(json);
+                streamWriter.Flush();
+                streamWriter.Close();
             }
-            HttpWebResponse response;
+
+            
+            HttpWebResponse httpResponse;
             try
             {
-                 response = (HttpWebResponse)req.GetResponse();
+                httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
             }
             catch (Exception e)
             {
+                DisplayLoginError();
                 return false;
             }
 
             this.logged_in = true;
-            string xtoken = response.Headers["custom-header"];
+            Stream dataStream = httpResponse.GetResponseStream();
+            StreamReader reader = new StreamReader(dataStream);
+            string responseFromServer = reader.ReadToEnd();
+            // Display the content.
+            try
+            {
+                dynamic data = JObject.Parse(responseFromServer);
+                login_token = data["token"];
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine(e.Message);
+            }
             return true;
             /*
             //Retrieve your cookie that id's your session
@@ -80,8 +136,9 @@ namespace TreeView.Connect
 
         private string username;
         private string password;
+        private string login_token;
         private bool logged_in = false;
         private string URL = "https://api.ellipsis-drive.com/v1/account/login";
-        private string token_URL = "https://api.ellipsis-drive.com/v1/account/info";
+        private string path_URL = "https://api.ellipsis-drive.com/v1";
     }
 }

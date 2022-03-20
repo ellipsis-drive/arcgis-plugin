@@ -1,4 +1,6 @@
 
+using TreeView.Connect;
+
 namespace TreeView
 {
     partial class DockableWindow1
@@ -32,12 +34,12 @@ namespace TreeView
             this.connect = new TreeView.Connect.Connect();
 
             this.labelPlaceholder = new System.Windows.Forms.Label();
-            this.treeView1 = new System.Windows.Forms.TreeView();
             this.button1 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.textBox2 = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.label2 = new System.Windows.Forms.Label();
+            this.treeView1 = new System.Windows.Forms.TreeView();
             this.SuspendLayout();
             // 
             // labelPlaceholder
@@ -49,14 +51,6 @@ namespace TreeView
             this.labelPlaceholder.Size = new System.Drawing.Size(339, 555);
             this.labelPlaceholder.TabIndex = 0;
             this.labelPlaceholder.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-            // 
-            // treeView1
-            // 
-            this.treeView1.Location = new System.Drawing.Point(3, 2);
-            this.treeView1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
-            this.treeView1.Name = "treeView1";
-            this.treeView1.Size = new System.Drawing.Size(329, 472);
-            this.treeView1.TabIndex = 1;
             // 
             // button1
             // 
@@ -81,10 +75,10 @@ namespace TreeView
             // 
             this.textBox2.Location = new System.Drawing.Point(3, 340);
             this.textBox2.Name = "textBox2";
+            this.textBox2.PasswordChar = '*';
             this.textBox2.Size = new System.Drawing.Size(332, 22);
             this.textBox2.TabIndex = 4;
             this.textBox2.TextChanged += new System.EventHandler(this.textBox2_TextChanged);
-            this.textBox2.PasswordChar = '*';
             // 
             // label1
             // 
@@ -94,7 +88,6 @@ namespace TreeView
             this.label1.Size = new System.Drawing.Size(73, 17);
             this.label1.TabIndex = 5;
             this.label1.Text = "Username";
-            this.label1.Click += new System.EventHandler(this.label1_Click);
             // 
             // label2
             // 
@@ -104,6 +97,14 @@ namespace TreeView
             this.label2.Size = new System.Drawing.Size(69, 17);
             this.label2.TabIndex = 6;
             this.label2.Text = "Password";
+            // 
+            // treeView1
+            // 
+            this.treeView1.Location = new System.Drawing.Point(3, 2);
+            this.treeView1.Margin = new System.Windows.Forms.Padding(3, 2, 3, 2);
+            this.treeView1.Name = "treeView1";
+            this.treeView1.Size = new System.Drawing.Size(329, 472);
+            this.treeView1.TabIndex = 1;
             // 
             // DockableWindow1
             // 
@@ -126,12 +127,12 @@ namespace TreeView
 
         #endregion
         private System.Windows.Forms.Label labelPlaceholder;
-        private System.Windows.Forms.TreeView treeView1;
         private System.Windows.Forms.Button button1;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
         private TreeView.Connect.Connect connect;
+        private System.Windows.Forms.TreeView treeView1;
     }
 }

@@ -1,18 +1,10 @@
 using ESRI.ArcGIS.ADF.CATIDs;
-using ESRI.ArcGIS.esriSystem;
 using ESRI.ArcGIS.Framework;
-using ESRI.ArcGIS.SystemUI;
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Forms;
-using TreeView.Model;
 using System.IO;
-using TreeView.Connect;
+using System.Diagnostics;
 
 namespace TreeView
 {
@@ -78,6 +70,12 @@ namespace TreeView
             this.treeView1.Hide();
         }
 
+        private void GetFolders(string node_name, TreeNode node)
+        {
+            string folder_name = this.connect.GetPath("path/listRoot", "base");
+            TreeNode new_node = node.Nodes.Add(folder_name);
+        }
+
         #region IDockableWindowDef Members
 
         string IDockableWindowDef.Caption
@@ -85,7 +83,7 @@ namespace TreeView
             get
             {
                 //TODO: Replace with locale-based initial title bar caption
-                return "My C# Dockable Window";
+                return "Ellipsis Drive";
             }
         }
 
@@ -160,7 +158,9 @@ namespace TreeView
          */
         private void button1_Click(object sender, EventArgs e)
         {
-            bool login = connect.LoginRequest();
+            bool login = false ;
+            if (this.connect != null && this.connect.GetStatus() == false)
+                login = this.connect.LoginRequest();
 
             if (login == true)
             {
@@ -178,23 +178,36 @@ namespace TreeView
                 if (once == true)
                 {
                     // Prepare data
-                    var directory = new DirectoryInfo("C:/Users/ROCVA/Desktop");
-                    TreeNode node = treeView1.Nodes.Add(directory.Name);
-                    SearchDirectory(directory, node);
+                    //var directory = new DirectoryInfo("C:/Users/ROCVA/Desktop");
+                    TreeNode node = treeView1.Nodes.Add("myMaps");
+                    TreeNode node1 = treeView1.Nodes.Add("shared");
+                    TreeNode node2 = treeView1.Nodes.Add("favorites");
+                    //SearchDirectory(directory, node);
+                    GetFolders("myMaps", node);
+                    //SearchDirectory(directory, node1);
+                    //SearchDirectory(directory, node2);
                     once = false;
-
                 }
+            }
+            else
+            {
+                this.textBox1.Text = "";
+                this.textBox2.Text = "";
+                this.connect.SetUsername("");
+                this.connect.SetPassword("");
             }
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
-            connect.SetUsername(this.textBox1.Text);
+            if (this.connect != null)
+                this.connect.SetUsername(this.textBox1.Text);
         }
 
         private void textBox2_TextChanged(object sender, EventArgs e)
         {
-            connect.SetPassword(this.textBox2.Text);
+            if (this.connect != null)
+                this.connect.SetPassword(this.textBox2.Text);
         }
     }
 
