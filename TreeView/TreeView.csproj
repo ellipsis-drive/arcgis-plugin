@@ -73,8 +73,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Connect.cs" />
-    <Compile Include="TreeViewModel.cs" />
+    <Compile Include="Ellipsis\Connect.cs" />
+    <Compile Include="Ellipsis\DriveView.cs" />
     <Compile Include="DockableWindow1.cs">
       <SubType>UserControl</SubType>
     </Compile>
@@ -82,12 +82,21 @@
       <DependentUpon>DockableWindow1.cs</DependentUpon>
     </Compile>
     <Compile Include="DockableWindow1Command.cs" />
+    <Compile Include="Ellipsis\ExampleForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Ellipsis\ExampleForm.Designer.cs">
+      <DependentUpon>ExampleForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="DockableWindow1.resx">
       <DependentUpon>DockableWindow1.cs</DependentUpon>
       <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Ellipsis\ExampleForm.resx">
+      <DependentUpon>ExampleForm.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>

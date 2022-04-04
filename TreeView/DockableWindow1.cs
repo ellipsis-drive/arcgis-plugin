@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
+using Ellipsis.Drive;
 
 namespace TreeView
 {
@@ -70,12 +71,6 @@ namespace TreeView
             this.treeView1.Hide();
         }
 
-        private void GetFolders(string node_name, TreeNode node)
-        {
-            string folder_name = this.connect.GetPath("path/listRoot", "base");
-            TreeNode new_node = node.Nodes.Add(folder_name);
-        }
-
         #region IDockableWindowDef Members
 
         string IDockableWindowDef.Caption
@@ -117,85 +112,51 @@ namespace TreeView
         }
 
         #endregion
-        private void SearchDirectory(DirectoryInfo directory, TreeNode node)
-        {
-            DirectoryInfo[] directories = default;
-            FileInfo[] files = default;
-            try
-            {
-                directories = directory.GetDirectories();
-            }
-            catch (Exception e)
-            {
-                // crash, burn 
-            }
-            if (directories != null)
-            {
-                foreach (var subdirectory in directories)
-                {
-                    TreeNode new_node = node.Nodes.Add(subdirectory.Name);
-                    SearchDirectory(subdirectory, new_node);
-                }
-            }
-            try
-            {
-                files = directory.GetFiles();
-            }
-            catch(Exception e)
-            {
-                // crash, burn
-            }
-            if (files != null)
-                foreach (var file in files)
-                    node.Nodes.Add(file.Name);
-        }
-        
 
-        private bool once = true;
+        private DriveView drive;
         /*
          * TODO: 
          * - Connect to personal drive instead of dummy directory
          */
         private void button1_Click(object sender, EventArgs e)
         {
-            bool login = false ;
-            if (this.connect != null && this.connect.GetStatus() == false)
+            bool login = false;
+            if (connect != null && this.connect.GetStatus() == false)
                 login = this.connect.LoginRequest();
 
-            if (login == true)
+            if (connect == null || (!connect.GetStatus() && !connect.LoginRequest()))
             {
-                // Hide instead of remove ....
-                this.SuspendLayout();
-                this.Controls.Remove(this.textBox1);
-                this.Controls.Remove(this.textBox2);
-                this.Controls.Remove(this.label1);
-                this.Controls.Remove(this.label2);
-                this.treeView1.Show();
-                this.ResumeLayout(false);
-                this.PerformLayout();
-
-
-                if (once == true)
-                {
-                    // Prepare data
-                    //var directory = new DirectoryInfo("C:/Users/ROCVA/Desktop");
-                    TreeNode node = treeView1.Nodes.Add("myMaps");
-                    TreeNode node1 = treeView1.Nodes.Add("shared");
-                    TreeNode node2 = treeView1.Nodes.Add("favorites");
-                    //SearchDirectory(directory, node);
-                    GetFolders("myMaps", node);
-                    //SearchDirectory(directory, node1);
-                    //SearchDirectory(directory, node2);
-                    once = false;
-                }
+                textBox1.Text = "";
+                textBox2.Text = "";
+                connect.SetUsername("");
+                connect.SetPassword("");
+                return;
             }
-            else
+
+            // Hide instead of remove ....
+            this.SuspendLayout();
+            this.Controls.Remove(this.textBox1);
+            this.Controls.Remove(this.textBox2);
+            this.Controls.Remove(this.label1);
+            this.Controls.Remove(this.label2);
+            this.treeView1.Show();
+            this.ResumeLayout(false);
+            this.PerformLayout();
+
+            if (drive != null)
             {
-                this.textBox1.Text = "";
-                this.textBox2.Text = "";
-                this.connect.SetUsername("");
-                this.connect.SetPassword("");
+                //If the drive view was already loaded before, it's nice to
+                //reset the nodes for the user when it's shown again.
+                drive.resetNodes();
+                return;
             }
+
+            //TODO add textbox for searching, refreshbutton and 'open in browser'-button.
+            drive = new DriveView(treeView1, connect, null, null, null, null);
+
+            //Quick example of how to listen for events.
+            drive.onLayerClick += (block, layer) => { };
+            drive.onTimestampClick += (block, timestamp, visualization, protocol) => { };
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)

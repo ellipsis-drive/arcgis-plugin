@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System.Net;
+﻿using System.Net;
 using System.IO;
 using System;
 using System.Windows.Forms;
@@ -7,7 +6,7 @@ using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace TreeView.Connect
+namespace Ellipsis.Api
 {
     class Connect
     {
@@ -33,9 +32,19 @@ namespace TreeView.Connect
             return this.logged_in;
         }
 
-        public string GetPath(string url, string id)
+        public JObject GetPath(string pathId, bool isFolder, string pageStart, bool isRoot)
         {
-            var httpWebRequest = (HttpWebRequest)WebRequest.Create(String.Format("{0}/{1}", path_URL, url));
+            string route = isRoot ? "path/listRoot" : "path/listFolder";
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create($"{path_URL}/{route}");
+
+            var body = JsonConvert.SerializeObject(new
+            {
+                root = pathId,
+                pathId = pathId,
+                type = isFolder ? "folder" : "map",
+                pageStart = pageStart
+            });
+
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.Method = "POST";
             httpWebRequest.Headers.Add("Authorization", "Bearer " + login_token);
@@ -43,23 +52,23 @@ namespace TreeView.Connect
 
             using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
             {
-                string json = JsonConvert.SerializeObject(new { pathId = id, type = "folder" });
-                streamWriter.Write(json);
+                streamWriter.Write(body);
                 streamWriter.Flush();
-                streamWriter.Close();
             }
 
-            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
 
-            if (httpResponse.StatusDescription == "OK")
+            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+            if (httpResponse.StatusDescription != "OK") return null;
+
+            using (var reader = new StreamReader(httpResponse.GetResponseStream()))
             {
-                Stream dataStream = httpResponse.GetResponseStream();
-                StreamReader reader = new StreamReader(dataStream);
                 string responseFromServer = reader.ReadToEnd();
                 // Display the content.
                 try
                 {
-                    dynamic data = JObject.Parse(responseFromServer);
+                    JObject data = JObject.Parse(responseFromServer);
+                    return data;
+                    /*return data;
                     foreach (JObject item in data["result"]) // <-- Note that here we used JObject instead of usual JProperty
                     {
                         foreach (JProperty jp in item.Properties())
@@ -68,15 +77,53 @@ namespace TreeView.Connect
                             Debug.WriteLine(jp.Name);
                         }
                     }
-                    return "result";
+                    return "result";*/
                 }
                 catch (Exception e)
                 {
                     Debug.WriteLine(e.Message);
-                    return e.Message;
                 }
             }
-            return httpResponse.StatusDescription;
+            return null;
+        }
+
+        public JObject SearchByName(string name, string type, string pageStart)
+        {
+            var httpWebRequest = (HttpWebRequest)WebRequest.Create($"{path_URL}/account/{type}");
+            var body = JsonConvert.SerializeObject(new
+            {
+                canView = true,
+                access = new string[] { "public", "subscribed", "owned", "favorited" },
+                name = name,
+                pageStart = pageStart
+            });
+
+            httpWebRequest.ContentType = "application/json";
+            httpWebRequest.Method = "POST";
+            httpWebRequest.Headers.Add("Authorization", "Bearer " + login_token);
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+
+            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+            {
+                streamWriter.Write(body);
+                streamWriter.Flush();
+            }
+
+            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+            if (httpResponse.StatusDescription != "OK") return null;
+
+            using (var reader = new StreamReader(httpResponse.GetResponseStream()))
+            {
+                try
+                {
+                    return JObject.Parse(reader.ReadToEnd());
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine(e.Message);
+                }
+            }
+            return null;
         }
 
         public bool LoginRequest()
