@@ -1,5 +1,5 @@
 
-using TreeView.Connect;
+using Ellipsis.Api;
 
 namespace TreeView
 {
@@ -31,7 +31,7 @@ namespace TreeView
         /// </summary>
         private void InitializeComponent()
         {
-            this.connect = new TreeView.Connect.Connect();
+            this.connect = new Connect();
 
             this.labelPlaceholder = new System.Windows.Forms.Label();
             this.button1 = new System.Windows.Forms.Button();
@@ -132,7 +132,7 @@ namespace TreeView
         private System.Windows.Forms.TextBox textBox2;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.Label label2;
-        private TreeView.Connect.Connect connect;
+        private Connect connect;
         private System.Windows.Forms.TreeView treeView1;
     }
 }
