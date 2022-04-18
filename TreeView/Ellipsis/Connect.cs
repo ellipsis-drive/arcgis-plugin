@@ -32,6 +32,11 @@ namespace Ellipsis.Api
             return this.logged_in;
         }
 
+        public string GetLoginToken()
+        {
+            return this.login_token;
+        }
+
         public JObject GetPath(string pathId, bool isFolder, string pageStart, bool isRoot)
         {
             string route = isRoot ? "path/listRoot" : "path/listFolder";

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace Ellipsis.Drive
 {
@@ -162,6 +163,7 @@ namespace Ellipsis.Drive
         private void runInfoCallbackForNode(TreeNode node, LayerEvent layerCb, TimestampEvent timestampCb)
         {
             JObject nodeTag = node.Tag as JObject;
+            string baseUrl = "https://api.ellipsis-drive.com/v2/ogc";
             if (nodeTag == null) return;
 
             if (nodeTag.Value<string>("method") != null)
@@ -170,9 +172,14 @@ namespace Ellipsis.Drive
                 string protocol = node.Parent.Name;
                 JObject timestamp = node.Parent.Parent.Tag as JObject;
                 JObject block = node.Parent.Parent.Parent.Tag as JObject;
-
-
+                JObject maplayer = block["mapLayers"][0] as JObject;
                 timestampCb(block, timestamp, nodeTag, protocol);
+
+                if (protocol == "WMS")
+                {
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                    layer.AddWMS();
+                }
             }
 
             else if (nodeTag.Value<string>("dateFrom") != null)
@@ -184,10 +191,11 @@ namespace Ellipsis.Drive
                     string protocol = node.Text;
                     JObject timestamp = nodeTag;
                     JObject block = node.Parent.Parent.Tag as JObject;
-
+                    JObject maplayer = block["mapLayers"][0] as JObject;
                     timestampCb(block, timestamp, null, protocol);
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                    layer.AddWMTS();
                 }
-
             }
 
             else if (nodeTag.Value<JObject>("extent") != null)
@@ -195,6 +203,9 @@ namespace Ellipsis.Drive
                 JObject block = node.Parent.Tag as JObject;
                 //node tag is geometryLayer
                 layerCb(block, nodeTag);
+
+                Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), "wfs", "", "");
+                layer.AddWFS();
             }
         }
 
