@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using System.IO;
 using System.Diagnostics;
 using Ellipsis.Drive;
+using Ellipsis.Api;
 
 namespace TreeView
 {
@@ -123,40 +124,59 @@ namespace TreeView
             bool login = false;
             if (connect != null && this.connect.GetStatus() == false)
                 login = this.connect.LoginRequest();
-
-            if (connect == null || (!connect.GetStatus() && !connect.LoginRequest()))
+            else if (connect != null && this.connect.GetStatus() == true)
+                login = this.connect.LogoutRequest();
+            else if (connect == null || (!connect.GetStatus() && !connect.LoginRequest()))
             {
                 textBox1.Text = "";
                 textBox2.Text = "";
                 connect.SetUsername("");
                 connect.SetPassword("");
-                return;
             }
-
-            // Hide instead of remove ....
-            this.SuspendLayout();
-            this.Controls.Remove(this.textBox1);
-            this.Controls.Remove(this.textBox2);
-            this.Controls.Remove(this.label1);
-            this.Controls.Remove(this.label2);
-            this.treeView1.Show();
-            this.ResumeLayout(false);
-            this.PerformLayout();
-
-            if (drive != null)
+            if (login == false)
             {
-                //If the drive view was already loaded before, it's nice to
-                //reset the nodes for the user when it's shown again.
-                drive.resetNodes();
-                return;
+                textBox1.Text = "";
+                textBox2.Text = "";
+                connect.SetUsername("");
+                connect.SetPassword("");
+                this.SuspendLayout();
+                this.treeView1.Hide();
+                this.textBox1.Show();
+                this.textBox2.Show();
+                this.label1.Show();
+                this.label2.Show();
+                this.button1.Text = "Login";
+                this.ResumeLayout(false);
+                this.PerformLayout();
             }
+            if (login == true)
+            {
+                // Hide instead of remove ....
+                this.SuspendLayout();
+                this.textBox1.Hide();
+                this.textBox2.Hide();
+                this.label1.Hide();
+                this.label2.Hide();
+                this.button1.Text = "Logout";
+                this.treeView1.Show();
+                this.ResumeLayout(false);
+                this.PerformLayout();
 
-            //TODO add textbox for searching, refreshbutton and 'open in browser'-button.
-            drive = new DriveView(treeView1, connect, null, null, null, null);
+                if (drive != null)
+                {
+                    //If the drive view was already loaded before, it's nice to
+                    //reset the nodes for the user when it's shown again.
+                    drive.resetNodes();
+                    return;
+                }
 
-            //Quick example of how to listen for events.
-            drive.onLayerClick += (block, layer) => { };
-            drive.onTimestampClick += (block, timestamp, visualization, protocol) => { };
+                //TODO add textbox for searching, refreshbutton and 'open in browser'-button.
+                drive = new DriveView(treeView1, connect, null, null, null, null);
+
+                //Quick example of how to listen for events.
+                drive.onLayerClick += (block, layer) => { };
+                drive.onTimestampClick += (block, timestamp, visualization, protocol) => { };
+            }
         }
 
         private void textBox1_TextChanged(object sender, EventArgs e)

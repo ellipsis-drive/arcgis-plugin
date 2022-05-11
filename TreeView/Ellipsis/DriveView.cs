@@ -174,12 +174,6 @@ namespace Ellipsis.Drive
                 JObject block = node.Parent.Parent.Parent.Tag as JObject;
                 JObject maplayer = block["mapLayers"][0] as JObject;
                 timestampCb(block, timestamp, nodeTag, protocol);
-
-                if (protocol == "WMS")
-                {
-                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
-                    layer.AddWMS();
-                }
             }
 
             else if (nodeTag.Value<string>("dateFrom") != null)
@@ -203,9 +197,9 @@ namespace Ellipsis.Drive
                 JObject block = node.Parent.Tag as JObject;
                 //node tag is geometryLayer
                 layerCb(block, nodeTag);
-
-                Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), "wfs", "", "");
-                layer.AddWFS();
+                string message = "Vector layers are only supported in ArcGIS Pro.";
+                string title = "Notice";
+                MessageBox.Show(message, title, MessageBoxButtons.OK);
             }
         }
 
@@ -301,14 +295,11 @@ namespace Ellipsis.Drive
         }
 
         //Get treenodes to represent the protocols.
-        private TreeNode[] getProtocolNodes(JObject timestamp)
+        private TreeNode getProtocolNode(JObject timestamp)
         {
-            return new TreeNode[]
-            {
-            getNode("WMS", "WMS", timestamp),
-            getNode("WCS", "WCS", timestamp),
-            getNode("WMTS", "WMTS", timestamp),
-            };
+            TreeNode t = new TreeNode();
+            t = getNode("WMTS", "WMTS", timestamp);
+            return t;
         }
 
         //Convert timestamps into a list of corresponding treenodes.
@@ -395,13 +386,11 @@ namespace Ellipsis.Drive
                 JArray visualizations = info.Value<JArray>("mapLayers");
                 timestampNodes.ForEach(t =>
                 {
-                    TreeNode[] protocols = getProtocolNodes((JObject)t.Tag);
-                    protocols[0].Nodes.AddRange(getVisualizationNodes(visualizations).ToArray());
-                    protocols[1].Nodes.AddRange(getVisualizationNodes(visualizations).ToArray());
-                    t.Nodes.AddRange(protocols);
+                    TreeNode protocol = getProtocolNode((JObject)t.Tag);
+                    t.Nodes.Add(protocol);
+                    
                 });
-
-                block.Nodes.AddRange(timestampNodes.ToArray());
+                block.Nodes.Add(timestampNodes.ToArray()[0]);
             }
 
             return block;

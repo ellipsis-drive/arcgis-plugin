@@ -131,6 +131,15 @@ namespace Ellipsis.Api
             return null;
         }
 
+        public bool LogoutRequest()
+        {
+            this.username = "";
+            this.password = "";
+            this.login_token = "";
+            this.logged_in = false;
+            return false;
+        }
+
         public bool LoginRequest()
         {
             HttpWebRequest httpWebRequest = (HttpWebRequest)WebRequest.Create(this.URL);
