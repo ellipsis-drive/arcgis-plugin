@@ -1,0 +1,25 @@
+﻿<ESRI.Configuration xmlns="http://schemas.esri.com/Desktop/AddIns" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <Name>ellipsis_drive_addin</Name>
+  <AddInID>{c0943ed2-57bd-4f55-bb63-fea0a5edb651}</AddInID>
+  <Description>Ellipsis Drive add in for ArcGIS Desktop.</Description>
+  <Version>1.0</Version>
+  <Image>Images\ellipsis_drive_addin.png</Image>
+  <Author>Berend van Starkenburg</Author>
+  <Company>Ellipsis Drive</Company>
+  <Date>7/3/2022</Date>
+  <Targets>
+    <Target name="Desktop" version="10.8" />
+  </Targets>
+  <AddIn language="CLR" library="ellipsis_drive_addin.dll" namespace="ellipsis_drive_addin">
+    <ArcMap>
+      <DockableWindows>
+        <DockableWindow id="ellipsis_drive_addin_TreeDrive" class="TreeDrive+AddinImpl" caption="Ellipsis Drive" image="Images\TreeDrive.png">
+          <InitialPlacement height="300" width="300" state="pinned" position="left" />
+        </DockableWindow>
+      </DockableWindows>
+      <Commands>
+        <Button id="Ellipsis_Drive_ellipsis_drive_addin_ToggleWindow" class="ToggleWindow" message="Toggle Ellispis Drive plugin." caption="Ellipsis Drive" tip="Toggle Ellispis Drive plugin." category="EDrive" image="Images\ToggleWindow.png" />
+      </Commands>
+    </ArcMap>
+  </AddIn>
+</ESRI.Configuration>
