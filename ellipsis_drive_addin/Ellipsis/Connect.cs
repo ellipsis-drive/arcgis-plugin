@@ -199,7 +199,7 @@ namespace Ellipsis.Api
         private string password;
         private string login_token;
         private bool logged_in = false;
-        private string URL = "https://api.ellipsis-drive.com/v1/account/login";
-        private string path_URL = "https://api.ellipsis-drive.com/v1";
+        private string URL = "https://api.ellipsis-drive.com/v2/account/login";
+        private string path_URL = "https://api.ellipsis-drive.com/v2";
     }
 }
