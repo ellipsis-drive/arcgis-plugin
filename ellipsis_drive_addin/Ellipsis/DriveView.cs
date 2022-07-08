@@ -197,7 +197,7 @@ namespace Ellipsis.Drive
                 JObject block = node.Parent.Tag as JObject;
                 //node tag is geometryLayer
                 layerCb(block, nodeTag);
-                string message = "Vector layers are only supported in ArcGIS Pro.";
+                string message = "Vector layers are no longer supported in ArcMap. The ArcGIS Pro plugin does support vector layers.";
                 string title = "Notice";
                 MessageBox.Show(message, title, MessageBoxButtons.OK);
             }
