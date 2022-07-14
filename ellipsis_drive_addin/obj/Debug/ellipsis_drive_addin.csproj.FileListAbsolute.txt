@@ -19,5 +19,4 @@ C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\ESRI.ArcGIS.GlobeCore.xml
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\ESRI.ArcGIS.3DAnalyst.xml
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\ESRI.ArcGIS.Animation.xml
-C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\ellipsis_drive_addin.tlb
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\ellipsis_drive_addin.esriAddIn

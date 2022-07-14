@@ -61,35 +61,42 @@ namespace Ellipsis.Api
                 streamWriter.Flush();
             }
 
-
-            var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
-            if (httpResponse.StatusDescription != "OK") return null;
-
-            using (var reader = new StreamReader(httpResponse.GetResponseStream()))
+            try
             {
-                string responseFromServer = reader.ReadToEnd();
-                // Display the content.
-                try
+                var httpResponse = (HttpWebResponse)httpWebRequest.GetResponse();
+                if (httpResponse.StatusDescription != "OK") return null;
+
+                using (var reader = new StreamReader(httpResponse.GetResponseStream()))
                 {
-                    JObject data = JObject.Parse(responseFromServer);
-                    return data;
-                    /*return data;
-                    foreach (JObject item in data["result"]) // <-- Note that here we used JObject instead of usual JProperty
+                    string responseFromServer = reader.ReadToEnd();
+                    // Display the content.
+                    try
                     {
-                        foreach (JProperty jp in item.Properties())
+                        JObject data = JObject.Parse(responseFromServer);
+                        return data;
+                        /*return data;
+                        foreach (JObject item in data["result"]) // <-- Note that here we used JObject instead of usual JProperty
                         {
-                            Debug.WriteLine("kom op:");
-                            Debug.WriteLine(jp.Name);
+                            foreach (JProperty jp in item.Properties())
+                            {
+                                Debug.WriteLine("kom op:");
+                                Debug.WriteLine(jp.Name);
+                            }
                         }
+                        return "result";*/
                     }
-                    return "result";*/
+                    catch (Exception e)
+                    {
+                        Debug.WriteLine(e.Message);
+                    }
                 }
-                catch (Exception e)
-                {
-                    Debug.WriteLine(e.Message);
-                }
+                return null;
             }
-            return null;
+            catch (Exception e)
+            {
+                Debug.WriteLine(e);
+                return null;
+            }
         }
 
         public JObject SearchByName(string name, string type, string pageStart)
@@ -199,7 +206,7 @@ namespace Ellipsis.Api
         private string password;
         private string login_token;
         private bool logged_in = false;
-        private string URL = "https://api.ellipsis-drive.com/v2/account/login";
-        private string path_URL = "https://api.ellipsis-drive.com/v2";
+        private string URL = "https://api.ellipsis-drive.com/v1/account/login";
+        private string path_URL = "https://api.ellipsis-drive.com/v1";
     }
 }

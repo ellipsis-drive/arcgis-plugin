@@ -173,6 +173,16 @@ namespace Ellipsis.Drive
                 JObject timestamp = node.Parent.Parent.Tag as JObject;
                 JObject block = node.Parent.Parent.Parent.Tag as JObject;
                 JObject maplayer = block["mapLayers"][0] as JObject;
+                if (protocol == "WMS")
+                {
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                    layer.AddWMS();
+                }
+                if (protocol == "WCS")
+                {
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                    //layer.AddWCS();
+                }
                 timestampCb(block, timestamp, nodeTag, protocol);
             }
 
@@ -295,11 +305,14 @@ namespace Ellipsis.Drive
         }
 
         //Get treenodes to represent the protocols.
-        private TreeNode getProtocolNode(JObject timestamp)
+        private TreeNode[] getProtocolNodes(JObject timestamp)
         {
-            TreeNode t = new TreeNode();
-            t = getNode("WMTS", "WMTS", timestamp);
-            return t;
+            return new TreeNode[]
+            {
+            getNode("WMS", "WMS", timestamp),
+            getNode("WCS", "WCS", timestamp),
+            getNode("WMTS", "WMTS", timestamp),
+            };
         }
 
         //Convert timestamps into a list of corresponding treenodes.
@@ -386,11 +399,13 @@ namespace Ellipsis.Drive
                 JArray visualizations = info.Value<JArray>("mapLayers");
                 timestampNodes.ForEach(t =>
                 {
-                    TreeNode protocol = getProtocolNode((JObject)t.Tag);
-                    t.Nodes.Add(protocol);
-
+                    TreeNode[] protocols = getProtocolNodes((JObject)t.Tag);
+                    protocols[0].Nodes.AddRange(getVisualizationNodes(visualizations).ToArray());
+                    protocols[1].Nodes.AddRange(getVisualizationNodes(visualizations).ToArray());
+                    t.Nodes.AddRange(protocols);
                 });
-                block.Nodes.Add(timestampNodes.ToArray()[0]);
+
+                block.Nodes.AddRange(timestampNodes.ToArray());
             }
 
             return block;
