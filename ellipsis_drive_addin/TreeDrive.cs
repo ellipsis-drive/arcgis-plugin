@@ -19,6 +19,8 @@ namespace ellipsis_drive_addin
         public TreeDrive(object hook)
         {
             InitializeComponent();
+            connect = new Connect();
+            drive = new DriveView(tree_drive, connect, null, null, null, browserButton);
             this.Hook = hook;
         }
 
@@ -92,6 +94,9 @@ namespace ellipsis_drive_addin
                 connect.SetPassword("");
                 this.SuspendLayout();
                 this.tree_drive.Hide();
+                searchBox.Visible = false;
+                searchButton.Visible = false;
+                browserButton.Visible = false;
                 this.username_box.Show();
                 this.password_box.Show();
                 this.username_label.Show();
@@ -110,6 +115,9 @@ namespace ellipsis_drive_addin
                 this.password_label.Hide();
                 this.login_button.Text = "Logout";
                 this.tree_drive.Show();
+                searchBox.Visible = true;
+                browserButton.Visible = true;
+                //searchButton.Visible = true;
                 this.ResumeLayout(false);
                 this.PerformLayout();
 
@@ -134,6 +142,36 @@ namespace ellipsis_drive_addin
         {
             if (this.connect != null)
                 this.connect.SetUsername(this.username_box.Text);
+        }
+
+        private void searchBox_GotFocus(object sender, EventArgs e)
+        {
+            if (this.searchBox.Text == "Search...")
+                this.searchBox.Text = "";
+        }
+
+        private void searchBox_LostFocus(object sender, EventArgs e)
+        {
+            if (this.searchBox.Text == "")
+                this.searchBox.Text = "Search...";
+        }
+        // Strategy:
+        // If multiple matches, unfold all matches
+        // If one match, fold all previous matches and select match
+        private void searchBox_TextChanged(object sender, EventArgs e)
+        {
+            if (searchBox.Text == "")
+                this.stopSearch();
+            else if (searchBox.Text != "Search...")
+            {
+                searchButton.Text = "Stop search";
+                drive.alterSearchText(searchBox.Text);
+            }
+        }
+
+        private void stopSearch()
+        {
+            drive.alterSearchText("");
         }
     }
 }

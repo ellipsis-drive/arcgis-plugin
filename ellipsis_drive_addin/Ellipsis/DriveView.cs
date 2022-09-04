@@ -18,7 +18,6 @@ namespace Ellipsis.Drive
         private System.Windows.Forms.TreeView view;
         private Connect connect;
         private TextBox searchInput;
-
         //Event fires when user doubleclicks on a (vector) layer.
         public event LayerEvent onLayerClick;
         //Event fires when user doubleclicks on a (raster) timestamp.
@@ -34,7 +33,8 @@ namespace Ellipsis.Drive
         {
             this.view = view;
             this.connect = connect;
-
+            searchInput = new TextBox();
+            searchInput.Visible = false;
             if (images != null && images.Images != null && images.Images.Count >= 3)
             {
                 view.ImageList = images;
@@ -116,6 +116,52 @@ namespace Ellipsis.Drive
             return null;
         }
 
+        public System.Diagnostics.Process indirectBrowserClick()
+        {
+            if (view.SelectedNode == null || view.SelectedNode.Name == getLoadingNode().Name) return null;
+
+            string baseUrl = "https://app.ellipsis-drive.com";
+            if (view.SelectedNode.Level == 0)
+            {
+                return System.Diagnostics.Process.Start($"{baseUrl}/drive/{view.SelectedNode.Name}");
+            }
+
+            if (view.SelectedNode.Tag != null)
+            {
+                JObject selectedInfo = view.SelectedNode.Tag as JObject;
+                if (selectedInfo.Value<string>("type") == "folder")
+                {
+                    var path = selectedInfo.Value<JObject>("path");
+                    string root = path.Value<string>("root");
+                    string pathId = path.Value<JArray>("path")[0].Value<string>("id");
+
+                    return System.Diagnostics.Process.Start($"{baseUrl}/drive/{root}?pathId={pathId}");
+
+                }
+                if (selectedInfo.Value<string>("type") == "map" || selectedInfo.Value<string>("type") == "shape")
+                {
+                    return System.Diagnostics.Process.Start($"{baseUrl}/view?mapId={selectedInfo.Value<string>("id")}");
+                }
+
+                System.Diagnostics.Process started = null;
+                runInfoCallbackForNode(view.SelectedNode, (block, layer) =>
+                {
+                    started = System.Diagnostics.Process.Start($"{baseUrl}/view?mapId={block.Value<string>("id")}");
+                }, (block, timestamp, visualization, protocol) =>
+                {
+                    started = System.Diagnostics.Process.Start($"{baseUrl}/view?mapId={block.Value<string>("id")}");
+                });
+
+                return started;
+            }
+
+            return null;
+        }
+        public void alterSearchText(string searchText)
+        {
+            searchInput.Text = searchText;
+        }
+
         //Refreshes view.
         private void handleRefreshClick(object sender, EventArgs e)
         {
@@ -181,7 +227,7 @@ namespace Ellipsis.Drive
                 if (protocol == "WCS")
                 {
                     Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
-                    //layer.AddWCS();
+                    layer.AddWCS();
                 }
                 timestampCb(block, timestamp, nodeTag, protocol);
             }

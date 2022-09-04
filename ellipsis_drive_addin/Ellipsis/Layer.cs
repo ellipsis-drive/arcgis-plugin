@@ -8,6 +8,8 @@ using System.Diagnostics;
 using System;
 using System.Text;
 using ellipsis_drive_addin;
+using System.Xml;
+using ESRI.ArcGIS.Catalog;
 
 namespace Ellipsis.Api
 {
@@ -28,6 +30,7 @@ namespace Ellipsis.Api
             if (protocol == "wms" || protocol == "wcs")
                 this.url = string.Format("{0}/{1}/{2}/{3}?version=1.0.0", URL, protocol, map_id, login_token);
             //activeView.Activate();
+            connect = new Connect();
         }
 
         public void AddWMTS()
@@ -71,22 +74,123 @@ namespace Ellipsis.Api
 
         public void AddWCS()
         {
-            IPropertySet propSet = new PropertySetClass();
-            propSet.SetProperty("URL", this.url);
-            //propSet.SetProperty("LayerName", this.ids);
-            IWCSConnectionFactory wcsConnFactory = new WCSConnectionFactory();
-            IWCSConnection wcsConnection = wcsConnFactory.Open(propSet, 0, null);
-            IWCSServiceDescription wcsServceDescription = wcsConnection as IWCSServiceDescription;
-            IWCSLayer wcsLayer = new WCSLayer();
-            WCSConnectionName connectionName = new WCSConnectionName();
-            connectionName.ConnectionProperties = propSet;
-            IDataLayer dataLayer = (IDataLayer)wcsLayer;
-            dataLayer.Connect((IName)connectionName);
-            ILayer pLayer = new FeatureLayer();
+            String[] s = url.Trim().Split('?');
+            url = s[0] + "?request=GetCapabilities&service=WCS";
+            String response = connect.SubmitHTTPRequest("", url);
+            XmlDocument xmlDocument = new XmlDocument();
+            try { xmlDocument.LoadXml(response); }
+            catch (XmlException xmlEx)
+            { }
 
-            pLayer = (ILayer)wcsLayer;
+            XmlNodeList contentMetadata = xmlDocument.GetElementsByTagName("CoverageSummary");
+            Debug.WriteLine(contentMetadata.Count);
+            if (contentMetadata != null && contentMetadata.Count > 0)
+            {
+                XmlNodeList coverageList = contentMetadata.Item(0).ChildNodes;
+                foreach (XmlNode coverage in coverageList)
+                {
+                    if (coverage.Name.ToLower().Equals("identifier"))
+                    {
+                        url = s[0] + "?request=GetCoverage&service=WCS&format=GeoTIFF&coverage=" + coverage.InnerText;
+                        Debug.WriteLine("url");
+                        Debug.WriteLine(url);
+                        try
+                        {
+                            String filePath = connect.SubmitHTTPRequest("DOWNLOAD", url);
+                            AddAGSService(filePath);
+                            
+                        }
+                        catch (Exception e)
+                        {
+                        }
+                    }
+                }
 
-            AddData(pLayer);
+            }
+        }
+
+        private void AddAGSService(string fileName)
+        {
+            try 
+            {
+                AppROT appRot = new AppROT();
+                IApplication myApp = appRot.get_Item(0);
+                IMxDocument mxDoc = myApp.Document as IMxDocument;
+                IMap map = (IMap)mxDoc.FocusMap;
+                IActiveView activeView = (IActiveView)map;
+                if (fileName.ToLower().Contains("http") && !fileName.ToLower().Contains("arcgis/rest"))
+                {
+                    if (fileName.EndsWith("MapServer"))
+                        fileName = fileName.Remove(fileName.LastIndexOf("MapServer"));
+
+                    String[] s = fileName.ToLower().Split(new String[] { "/services" }, StringSplitOptions.RemoveEmptyEntries);
+
+                    IPropertySet propertySet = new PropertySetClass();
+                    propertySet.SetProperty("URL", s[0] + "/services"); // fileName
+
+                    IMapServer mapServer = null;
+
+                    IAGSServerConnectionFactory pAGSServerConFactory = new AGSServerConnectionFactory();
+                    IAGSServerConnection agsCon = pAGSServerConFactory.Open(propertySet, 0);
+                    IAGSEnumServerObjectName pAGSSObjs = agsCon.ServerObjectNames;
+                    IAGSServerObjectName pAGSSObj = pAGSSObjs.Next();
+
+                    while (pAGSSObj != null)
+                    {
+                        if (pAGSSObj.Type == "MapServer" && pAGSSObj.Name.ToLower() == s[1].TrimStart('/').TrimEnd('/'))
+                        {
+                            break;
+                        }
+                        pAGSSObj = pAGSSObjs.Next();
+                    }
+
+
+                    IName pName = (IName)pAGSSObj;
+                    IAGSServerObject pAGSO = (IAGSServerObject)pName.Open();
+                    mapServer = (IMapServer)pAGSO;
+
+
+                    IPropertySet prop = new PropertySetClass();
+                    prop.SetProperty("URL", fileName);
+                    prop.SetProperty("Name", pAGSSObj.Name);
+
+
+                    IMapServerLayer layer = new MapServerLayer() as IMapServerLayer;
+                    layer.ServerConnect(pAGSSObj, mapServer.get_MapName(0));
+
+
+                    mxDoc.AddLayer((ILayer)layer);
+
+                }
+                else
+                {
+
+                    IGxFile pGxFile;
+
+                    if (fileName.ToLower().EndsWith(".tif"))
+                    {
+                        IRasterLayer pGxLayer = (IRasterLayer)new RasterLayer();
+                        pGxLayer.CreateFromFilePath(fileName);
+                        if (pGxLayer.Valid)
+                        {
+                            map.AddLayer((ILayer)pGxLayer);
+                        }
+                    }
+                    else
+                    {
+                        IGxLayer pGxLayer = new GxLayer();
+                        pGxFile = (GxFile)pGxLayer;
+                        pGxFile.Path = fileName;
+
+                        if (pGxLayer.Layer != null)
+                        {
+                            map.AddLayer(pGxLayer.Layer);
+                        }
+                    }
+
+                }
+            }
+            catch (Exception e) { }
         }
 
         private void AddData(ILayer pLayer)
@@ -110,5 +214,6 @@ namespace Ellipsis.Api
         private string timestamp_id;
         private string layer_id;
         private string ids;
+        private Connect connect;
     }
 }

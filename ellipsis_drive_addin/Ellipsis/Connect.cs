@@ -5,11 +5,113 @@ using System.Windows.Forms;
 using System.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using static System.Environment;
+using Microsoft.Win32;
 
 namespace Ellipsis.Api
 {
     class Connect
     {
+        public string SubmitHTTPRequest(string method, string URL)
+        {
+            String responseText = "";
+
+            HttpWebRequest request;
+            Uri uri = new Uri(URL);
+            request = (HttpWebRequest)WebRequest.Create(uri);
+            request.ContentType = "text/xml; charset=UTF-8";
+            request.Method = "GET";
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            Stream responseStream = response.GetResponseStream();
+            if (method.Equals("DOWNLOAD"))
+            {
+                FileStream file = null;
+                Debug.WriteLine(response);
+                string fileName = response.GetResponseHeader("Content-Disposition");
+                Debug.WriteLine("break3");
+                Debug.WriteLine(fileName);
+
+                string[] s = null;
+                if (fileName.ToLower().EndsWith(".tif"))
+                {
+                    s = URL.Split(new String[] { "coverage=" }, 100, StringSplitOptions.RemoveEmptyEntries);
+                    s[1] = s[1].Trim() + ".tif";
+                }
+                else
+                {
+                    s = fileName.Split('=');
+                    s[1] = s[1].Replace('\\', ' ');
+                    s[1] = s[1].Replace('"', ' ');
+                    s[1] = s[1].Trim();
+                }
+                
+                try
+                {
+                    Debug.WriteLine("filename");
+                    Debug.WriteLine(GetSpecialFolderPath());
+                    downloadFileName = System.IO.Path.Combine(GetSpecialFolderPath(), s[1]);
+                    Debug.WriteLine("filename");
+                    Debug.WriteLine(downloadFileName);
+                    System.IO.File.Delete(downloadFileName);
+                    file = System.IO.File.Create(downloadFileName);
+                    // Buffer to read 10K bytes in chunk:
+                    byte[] buffer = new Byte[10000];
+                    int length = 10000;
+                    int offset = 0;
+                    while (length > 0)
+                    {
+                        length = responseStream.Read(buffer, 0, length);
+                        offset += length;
+                        file.Write(buffer, 0, length);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Debug.WriteLine("wrong");
+                }
+                finally
+                {
+                    if (file != null)
+                        file.Close();
+                    if (responseStream != null)
+                        responseStream.Close();
+                }
+
+                return downloadFileName;
+            }
+            StreamReader reader = new StreamReader(responseStream);
+            responseText = reader.ReadToEnd();
+
+            reader.Close();
+            responseStream.Close();
+
+            return responseText;
+        }
+
+        private static string GetSpecialFolderPath()
+        {
+            string folderPath = "";
+            string configFileDir = null;
+            RegistryKey regKey = Registry.LocalMachine.OpenSubKey("SOFTWARE\\PDOK\\Applications\\PDOK4ArcGIS");
+            if (regKey != null) configFileDir = (String)regKey.GetValue("ConfigFileDir");
+            if (configFileDir == null) configFileDir = ExecutingAssemblyPath();
+            Debug.WriteLine("Break");
+            try
+            {
+                System.IO.StreamReader fStream = System.IO.File.OpenText(configFileDir + "\\CswConfigPath.properties");
+                folderPath = fStream.ReadLine();
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine("Wrong");
+            }
+            return folderPath;
+        }
+
+        private static string ExecutingAssemblyPath()
+        {
+            return System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
+        }
         private void DisplayLoginError()
         {
             string message = "Please enter your correct username and password.";
@@ -202,6 +304,7 @@ namespace Ellipsis.Api
             */
         }
 
+        private String downloadFileName = "";
         private string username;
         private string password;
         private string login_token;

@@ -31,14 +31,15 @@ namespace ellipsis_drive_addin
         /// </summary>
         private void InitializeComponent()
         {
-            this.connect = new Connect();
-
             this.username_box = new System.Windows.Forms.TextBox();
             this.password_box = new System.Windows.Forms.TextBox();
             this.username_label = new System.Windows.Forms.Label();
             this.password_label = new System.Windows.Forms.Label();
             this.login_button = new System.Windows.Forms.Button();
             this.tree_drive = new System.Windows.Forms.TreeView();
+            this.searchBox = new System.Windows.Forms.TextBox();
+            this.searchButton = new System.Windows.Forms.Button();
+            this.browserButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // username_box
@@ -88,15 +89,51 @@ namespace ellipsis_drive_addin
             // 
             // tree_drive
             // 
-            this.tree_drive.Location = new System.Drawing.Point(4, 4);
+            this.tree_drive.Location = new System.Drawing.Point(4, 46);
             this.tree_drive.Name = "tree_drive";
-            this.tree_drive.Size = new System.Drawing.Size(273, 247);
+            this.tree_drive.Size = new System.Drawing.Size(273, 205);
             this.tree_drive.TabIndex = 5;
             this.tree_drive.Visible = false;
             this.tree_drive.AfterSelect += new System.Windows.Forms.TreeViewEventHandler(this.treeView1_AfterSelect);
             // 
+            // searchBox
+            // 
+            this.searchBox.Location = new System.Drawing.Point(4, 18);
+            this.searchBox.Name = "searchBox";
+            this.searchBox.Size = new System.Drawing.Size(217, 22);
+            this.searchBox.TabIndex = 6;
+            this.searchBox.Tag = "Search...";
+            this.searchBox.Text = "Search...";
+            this.searchBox.Visible = false;
+            this.searchBox.TextChanged += new System.EventHandler(this.searchBox_TextChanged);
+            this.searchBox.GotFocus += new System.EventHandler(this.searchBox_GotFocus);
+            this.searchBox.LostFocus += new System.EventHandler(this.searchBox_LostFocus);
+            // 
+            // searchButton
+            // 
+            this.searchButton.Location = new System.Drawing.Point(4, 46);
+            this.searchButton.Name = "searchButton";
+            this.searchButton.Size = new System.Drawing.Size(126, 23);
+            this.searchButton.TabIndex = 7;
+            this.searchButton.Text = "Search";
+            this.searchButton.UseVisualStyleBackColor = true;
+            this.searchButton.Visible = false;
+            // 
+            // browserButton
+            // 
+            this.browserButton.Location = new System.Drawing.Point(4, 256);
+            this.browserButton.Name = "browserButton";
+            this.browserButton.Size = new System.Drawing.Size(165, 23);
+            this.browserButton.TabIndex = 8;
+            this.browserButton.Text = "Open in browser";
+            this.browserButton.UseVisualStyleBackColor = true;
+            this.browserButton.Visible = false;
+            // 
             // TreeDrive
             // 
+            this.Controls.Add(this.browserButton);
+            this.Controls.Add(this.searchButton);
+            this.Controls.Add(this.searchBox);
             this.Controls.Add(this.login_button);
             this.Controls.Add(this.password_label);
             this.Controls.Add(this.username_label);
@@ -120,5 +157,8 @@ namespace ellipsis_drive_addin
         private System.Windows.Forms.TreeView tree_drive;
         private Connect connect;
         private DriveView drive;
+        private System.Windows.Forms.TextBox searchBox;
+        private System.Windows.Forms.Button searchButton;
+        private System.Windows.Forms.Button browserButton;
     }
 }
