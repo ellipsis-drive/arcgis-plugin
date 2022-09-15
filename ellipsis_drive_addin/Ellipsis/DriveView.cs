@@ -327,10 +327,24 @@ namespace Ellipsis.Drive
             var children = timestamps.Children<JObject>();
             foreach (var child in children)
             {
+                TreeNode parsedChild = getNode(child.Value<string>("dateFrom") + " - " + child.Value<string>("dateTo"), child.Value<string>("id"));
                 //TODO parse {availability: {blocked: false}} ??
                 if (child.Value<string>("status") != "finished")
+                {
+
+                    JObject blocked = child.Value<JObject>("availability");
+                    if (blocked.Value<bool>("blocked"))
+                    {
+                        parsedChild.Text += " (timestamp is blocked)";
+                    }
+                    else
+                    {
+                        parsedChild.Text += " (timestamp inactive)";
+                    }
+                    nodes.Add(parsedChild);
                     continue;
-                TreeNode parsedChild = getNode(child.Value<string>("dateFrom") + " - " + child.Value<string>("dateTo"), child.Value<string>("id"));
+                }
+                
                 parsedChild.Tag = child;
                 nodes.Add(parsedChild);
             }
@@ -404,10 +418,13 @@ namespace Ellipsis.Drive
                 JArray visualizations = info.Value<JArray>("mapLayers");
                 timestampNodes.ForEach(t =>
                 {
-                    TreeNode[] protocols = getProtocolNodes((JObject)t.Tag);
-                    protocols[0].Nodes.AddRange(getVisualizationNodes(visualizations).ToArray());
-                    protocols[1].Nodes.AddRange(getVisualizationNodes(visualizations).ToArray());
-                    t.Nodes.AddRange(protocols);
+                    if (!t.Text.Contains(" (timestamp is blocked)") && !t.Text.Contains(" (timestamp inactive)"))
+                    {
+                        TreeNode[] protocols = getProtocolNodes((JObject)t.Tag);
+                        protocols[0].Nodes.AddRange(getVisualizationNodes(visualizations).ToArray());
+                        protocols[1].Nodes.AddRange(getVisualizationNodes(visualizations).ToArray());
+                        t.Nodes.AddRange(protocols);
+                    }
                 });
 
                 block.Nodes.AddRange(timestampNodes.ToArray());
