@@ -329,6 +329,11 @@ namespace Ellipsis.Drive
             {
                 TreeNode parsedChild = getNode(child.Value<string>("dateFrom") + " - " + child.Value<string>("dateTo"), child.Value<string>("id"));
                 //TODO parse {availability: {blocked: false}} ??
+                if (child.Value<string>("status") == "deleted")
+                {
+                    parsedChild.Text += " (timestamp deleted)";
+                    nodes.Add(parsedChild);
+                }
                 if (child.Value<string>("status") != "finished")
                 {
 
@@ -418,7 +423,7 @@ namespace Ellipsis.Drive
                 JArray visualizations = info.Value<JArray>("mapLayers");
                 timestampNodes.ForEach(t =>
                 {
-                    if (!t.Text.Contains(" (timestamp is blocked)") && !t.Text.Contains(" (timestamp inactive)"))
+                    if (!t.Text.Contains(" (timestamp deleted)") && !t.Text.Contains(" (timestamp is blocked)") && !t.Text.Contains(" (timestamp inactive)"))
                     {
                         TreeNode[] protocols = getProtocolNodes((JObject)t.Tag);
                         protocols[0].Nodes.AddRange(getVisualizationNodes(visualizations).ToArray());
