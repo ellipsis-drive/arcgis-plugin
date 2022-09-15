@@ -316,7 +316,7 @@ namespace Ellipsis.Drive
             {
                 getNode("WMS", "WMS", timestamp),
                 getNode("WMTS", "WMTS", timestamp),
-                getNode("WCS", "WCS", timestamp),
+                //getNode("WCS", "WCS", timestamp),
             };
         }
 
