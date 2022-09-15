@@ -333,6 +333,7 @@ namespace Ellipsis.Drive
                 {
                     parsedChild.Text += " (timestamp deleted)";
                     nodes.Add(parsedChild);
+                    continue;
                 }
                 if (child.Value<string>("status") != "finished")
                 {
