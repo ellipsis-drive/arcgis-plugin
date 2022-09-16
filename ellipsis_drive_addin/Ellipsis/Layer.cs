@@ -25,7 +25,7 @@ namespace Ellipsis.Api
             this.timestamp_id = _timestamp_id;
             this.layer_id = _layer_id;
             this.protocol = _protocol.ToLower();
-            this.ids = string.Format("{0}_{1}", this.timestamp_id, this.layer_id);
+            this.ids = string.Format("{0}_{1}", this.timestamp_id, layer_id);
             this.url = string.Format("{0}/{1}/{2}/{3}", URL, protocol, map_id, login_token);
             if (protocol == "wms" || protocol == "wcs")
                 this.url = string.Format("{0}/{1}/{2}/{3}?version=1.0.0", URL, protocol, map_id, login_token);

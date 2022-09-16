@@ -178,9 +178,10 @@ namespace Ellipsis.Drive
                 JObject timestamp = node.Parent.Parent.Tag as JObject;
                 JObject block = node.Parent.Parent.Parent.Tag as JObject;
                 JObject maplayer = block["mapLayers"][0] as JObject;
+                timestampCb(block, timestamp, nodeTag, protocol);
                 if (protocol == "WMS")
                 {
-                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"));
                     layer.AddWMS();
                 }
                 if (protocol == "WCS")
@@ -188,7 +189,18 @@ namespace Ellipsis.Drive
                     Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
                     layer.AddWCS();
                 }
-                timestampCb(block, timestamp, nodeTag, protocol);
+                
+                if (protocol == "WMTS")
+                {
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"));
+                    Debug.WriteLine("Layer name:");
+                    Debug.WriteLine(block.Value<string>("name"));
+                    foreach (var pair in maplayer)
+                    {
+                        Debug.WriteLine("{0}: {1}", pair.Key, pair.Value);
+                    }
+                    layer.AddWMTS();
+                }
             }
 
             else if (nodeTag.Value<string>("dateFrom") != null)
@@ -448,6 +460,8 @@ namespace Ellipsis.Drive
             do
             {
                 JObject nestedFolders = connect.GetPath(parent.Name, true, nextFolderPageStart, parent.Level == 0);
+                if (nestedFolders == null)
+                    return null;
                 foreach (JObject nestedFolder in nestedFolders["result"]) // <-- Note that here we used JObject instead of usual JProperty
                 {
                     //nestedFolders.Value<List<JObject>>("result").ForEach(x => buffer.Add(getFolderNode(x)));
@@ -467,6 +481,8 @@ namespace Ellipsis.Drive
             do
             {
                 JObject nestedBlocks = connect.GetPath(parent.Name, false, nextBlockPageStart, parent.Level == 0);
+                if (nestedBlocks == null)
+                    return null;
                 foreach (JObject nestedFolder in nestedBlocks["result"]) // <-- Note that here we used JObject instead of usual JProperty
                 {
                     buffer.Add(getBlockNode(nestedFolder));
@@ -484,9 +500,12 @@ namespace Ellipsis.Drive
                 Task.Run(() => fetchFolders(folder)),
                 Task.Run(() => fetchBlocks(folder)));
 
+            
             folder.Nodes[0].Remove();
-            folder.Nodes.AddRange(results[0].ToArray());
-            folder.Nodes.AddRange(results[1].ToArray());
+            if (results[0] != null)
+                folder.Nodes.AddRange(results[0].ToArray());
+            if (results[1] != null)
+                folder.Nodes.AddRange(results[1].ToArray());
         }
 
         //Search for folders with name. Stops when searchInput changed.
