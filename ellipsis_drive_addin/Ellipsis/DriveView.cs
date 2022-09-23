@@ -2,11 +2,12 @@
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Diagnostics;
 
+/* Check favorite location als drive location null is */
 namespace Ellipsis.Drive
 {
     //These are basically describing how event handler functions (or CB's) have to look.
@@ -175,6 +176,7 @@ namespace Ellipsis.Drive
             {
                 //node tag is visualization
                 string protocol = node.Parent.Name;
+                Debug.WriteLine("Protocol: {0}", protocol);
                 JObject timestamp = node.Parent.Parent.Tag as JObject;
                 JObject block = node.Parent.Parent.Parent.Tag as JObject;
                 JObject maplayer = block["mapLayers"][0] as JObject;
@@ -184,21 +186,10 @@ namespace Ellipsis.Drive
                     Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"));
                     layer.AddWMS();
                 }
-                if (protocol == "WCS")
-                {
-                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
-                    layer.AddWCS();
-                }
-                
+
                 if (protocol == "WMTS")
                 {
                     Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"));
-                    Debug.WriteLine("Layer name:");
-                    Debug.WriteLine(block.Value<string>("name"));
-                    foreach (var pair in maplayer)
-                    {
-                        Debug.WriteLine("{0}: {1}", pair.Key, pair.Value);
-                    }
                     layer.AddWMTS();
                 }
             }
@@ -214,8 +205,11 @@ namespace Ellipsis.Drive
                     JObject block = node.Parent.Parent.Tag as JObject;
                     JObject maplayer = block["mapLayers"][0] as JObject;
                     timestampCb(block, timestamp, null, protocol);
-                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
-                    layer.AddWMTS();
+                    if (protocol == "WCS")
+                    {
+                        Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                        layer.AddWCS();
+                    }
                 }
             }
 
@@ -236,10 +230,8 @@ namespace Ellipsis.Drive
             //Every folder contains loading node by default, so upon opening, convert this to contents.
             if (e.Action != TreeViewAction.Expand) return;
             if (e.Node.Nodes == null || e.Node.Nodes.Count != 1 || e.Node.Nodes[0].Name != "loading") return;
-
             var loadingMarker = e.Node.Nodes[0];
             if (!loadingMarker.Name.Equals("loading")) return;
-
             _ = loadFolder(e.Node);
         }
 
@@ -261,6 +253,11 @@ namespace Ellipsis.Drive
         private TreeNode getLoadingNode()
         {
             return getNode("Loading...", "loading");
+        }
+
+        private TreeNode getSearchNode()
+        {
+            return getNode("Results", "results");
         }
 
         //Gets folder node from info. Checks for all render conditions.
@@ -362,7 +359,7 @@ namespace Ellipsis.Drive
                     nodes.Add(parsedChild);
                     continue;
                 }
-                
+
                 parsedChild.Tag = child;
                 nodes.Add(parsedChild);
             }
@@ -455,10 +452,11 @@ namespace Ellipsis.Drive
         private List<TreeNode> fetchFolders(TreeNode parent)
         {
             List<TreeNode> buffer = new List<TreeNode>();
-
             string nextFolderPageStart = null;
             do
             {
+                Debug.WriteLine("parent.name: ", parent.Name);
+                Debug.WriteLine("parent.level: ", parent.Level.ToString());
                 JObject nestedFolders = connect.GetPath(parent.Name, true, nextFolderPageStart, parent.Level == 0);
                 if (nestedFolders == null)
                     return null;
@@ -500,7 +498,6 @@ namespace Ellipsis.Drive
                 Task.Run(() => fetchFolders(folder)),
                 Task.Run(() => fetchBlocks(folder)));
 
-            
             folder.Nodes[0].Remove();
             if (results[0] != null)
                 folder.Nodes.AddRange(results[0].ToArray());
@@ -571,10 +568,10 @@ namespace Ellipsis.Drive
                 Task.Run(() => searchBlocks(name, true)));
 
             if (name != searchInput.Text || results.Any((x) => x == null)) return;
-
             view.Nodes.Clear();
+            view.Nodes.Add(getSearchNode());
             for (int i = 0; i < results.Length; i++)
-                view.Nodes.AddRange(results[i].ToArray());
+                view.Nodes[0].Nodes.AddRange(results[i].ToArray());
         }
     }
 }

@@ -74,39 +74,18 @@ namespace Ellipsis.Api
 
         public void AddWCS()
         {
-            String[] s = url.Trim().Split('?');
-            url = s[0] + "?request=GetCapabilities&service=WCS";
-            String response = connect.SubmitHTTPRequest("", url);
-            XmlDocument xmlDocument = new XmlDocument();
-            try { xmlDocument.LoadXml(response); }
-            catch (XmlException xmlEx)
-            { }
-
-            XmlNodeList contentMetadata = xmlDocument.GetElementsByTagName("CoverageSummary");
-            Debug.WriteLine(contentMetadata.Count);
-            if (contentMetadata != null && contentMetadata.Count > 0)
-            {
-                XmlNodeList coverageList = contentMetadata.Item(0).ChildNodes;
-                foreach (XmlNode coverage in coverageList)
-                {
-                    if (coverage.Name.ToLower().Equals("identifier"))
-                    {
-                        url = s[0] + "?request=GetCoverage&service=WCS&format=GeoTIFF&coverage=" + coverage.InnerText;
-                        Debug.WriteLine("url");
-                        Debug.WriteLine(url);
-                        try
-                        {
-                            String filePath = connect.SubmitHTTPRequest("DOWNLOAD", url);
-                            AddAGSService(filePath);
-                            
-                        }
-                        catch (Exception e)
-                        {
-                        }
-                    }
-                }
-
-            }
+            IPropertySet propSet = new PropertySetClass();
+            propSet.SetProperty("URL", this.url);
+            propSet.SetProperty("LayerName", this.layer_id);
+            IWCSConnectionFactory wcsConnFactory = new WCSConnectionFactory();
+            IWCSConnection wcsConnection = wcsConnFactory.Open(propSet, 0, null);
+            IWCSServiceDescription wcsServceDescription = wcsConnection as IWCSServiceDescription;
+            IWCSLayer wcsLayer = new WCSLayer();
+            WCSConnectionName connectionName = new WCSConnectionName();
+            connectionName.ConnectionProperties = propSet;
+            IDataLayer dataLayer = (IDataLayer)wcsLayer;
+            dataLayer.Connect((IName)connectionName);
+            AddData((ILayer)wcsLayer);
         }
 
         private void AddAGSService(string fileName)

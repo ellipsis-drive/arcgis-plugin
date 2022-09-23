@@ -176,16 +176,6 @@ namespace Ellipsis.Api
                     {
                         JObject data = JObject.Parse(responseFromServer);
                         return data;
-                        /*return data;
-                        foreach (JObject item in data["result"]) // <-- Note that here we used JObject instead of usual JProperty
-                        {
-                            foreach (JProperty jp in item.Properties())
-                            {
-                                Debug.WriteLine("kom op:");
-                                Debug.WriteLine(jp.Name);
-                            }
-                        }
-                        return "result";*/
                     }
                     catch (Exception e)
                     {
