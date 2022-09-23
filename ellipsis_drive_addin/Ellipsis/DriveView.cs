@@ -7,7 +7,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-/* Check favorite location als drive location null is */
+/* TODO: 
+ * Disable open in browser als geen tekst geselecteerd
+ * add button to end search */
 namespace Ellipsis.Drive
 {
     //These are basically describing how event handler functions (or CB's) have to look.
@@ -257,7 +259,7 @@ namespace Ellipsis.Drive
 
         private TreeNode getSearchNode()
         {
-            return getNode("Results", "results");
+            return getNode("Search results", "results");
         }
 
         //Gets folder node from info. Checks for all render conditions.
@@ -279,7 +281,7 @@ namespace Ellipsis.Drive
                 folder.Text += " (folder disabled)";
                 return folder;
             }
-            if (info.Value<JObject>("yourAccess").Value<int>("accessLevel") < 200)
+            if (info.Value<JObject>("yourAccess").Value<int>("accessLevel") <= 0)
             {
                 folder.Text += " (access level too low)";
                 return folder;
@@ -344,18 +346,17 @@ namespace Ellipsis.Drive
                     nodes.Add(parsedChild);
                     continue;
                 }
-                if (child.Value<string>("status") != "finished")
-                {
 
-                    JObject blocked = child.Value<JObject>("availability");
-                    if (blocked.Value<bool>("blocked"))
-                    {
-                        parsedChild.Text += " (timestamp is blocked)";
-                    }
-                    else
-                    {
-                        parsedChild.Text += " (timestamp inactive)";
-                    }
+                JObject blocked = child.Value<JObject>("availability");
+                if (blocked.Value<bool>("blocked"))
+                {
+                    parsedChild.Text += " (timestamp is blocked)";
+                    nodes.Add(parsedChild);
+                    continue;
+                }
+                else if (child.Value<string>("status") != "finished")
+                {
+                    parsedChild.Text += " (timestamp inactive)";
                     nodes.Add(parsedChild);
                     continue;
                 }
@@ -383,7 +384,7 @@ namespace Ellipsis.Drive
                 block.Text += " (layer disabled)";
                 return block;
             }
-            if (info.Value<JObject>("yourAccess").Value<int>("accessLevel") < 200)
+            if (info.Value<JObject>("yourAccess").Value<int>("accessLevel") <= 0)
             {
                 block.Text += " (access level too low)";
                 return block;

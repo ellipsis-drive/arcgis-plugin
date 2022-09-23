@@ -1,12 +1,9 @@
 ﻿//using ESRI.ArcGIS.ADF.CATIDs;
-using ESRI.ArcGIS.Framework;
 using System;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using System.IO;
-using System.Diagnostics;
 using Ellipsis.Drive;
 using Ellipsis.Api;
+//using Aspose.Svg;
 
 namespace ellipsis_drive_addin
 {
@@ -20,6 +17,7 @@ namespace ellipsis_drive_addin
         {
             InitializeComponent();
             connect = new Connect();
+            //var svgDoc = SVGDocument.Open(imagePath);
             drive = new DriveView(tree_drive, connect, null, null, null, browserButton);
             this.Hook = hook;
         }
