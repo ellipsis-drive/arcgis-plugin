@@ -95,10 +95,12 @@ namespace ellipsis_drive_addin
                 searchBox.Visible = false;
                 searchButton.Visible = false;
                 browserButton.Visible = false;
+                browserButton.Enabled = false;
                 this.username_box.Show();
                 this.password_box.Show();
                 this.username_label.Show();
                 this.password_label.Show();
+                this.stopButton.Hide();
                 this.login_button.Text = "Login";
                 this.ResumeLayout(false);
                 this.PerformLayout();
@@ -113,6 +115,7 @@ namespace ellipsis_drive_addin
                 this.password_label.Hide();
                 this.login_button.Text = "Logout";
                 this.tree_drive.Show();
+                this.stopButton.Show();
                 searchBox.Visible = true;
                 browserButton.Visible = true;
                 //searchButton.Visible = true;
@@ -169,6 +172,13 @@ namespace ellipsis_drive_addin
 
         private void stopSearch()
         {
+            drive.alterSearchText("");
+        }
+
+        private void stopButton_Click(object sender, EventArgs e)
+        {
+            if (searchBox.Text != "Search...")
+                searchBox.Text = "";
             drive.alterSearchText("");
         }
     }

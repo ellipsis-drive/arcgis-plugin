@@ -56,7 +56,7 @@ namespace Ellipsis.Drive
 
             if (openInBrowser != null)
             {
-                openInBrowser.Click += (sender, e) => handleOpenInBrowserClick(sender, e);
+                openInBrowser.Click += (sender, e) => handleOpenInBrowserClick(sender, e, openInBrowser);
             }
 
             view.Indent = 12;
@@ -69,15 +69,15 @@ namespace Ellipsis.Drive
             onTimestampSelect += (a, b, c, d) => { };
 
             //Map node click event handlers to run info callbacks.
-            view.NodeMouseDoubleClick += (sender, e) => runInfoCallbackForNode(e.Node, onLayerClick.Invoke, onTimestampClick.Invoke);
-            view.AfterSelect += (sender, e) => runInfoCallbackForNode(e.Node, onLayerSelect.Invoke, onTimestampSelect.Invoke);
+            view.NodeMouseDoubleClick += (sender, e) => runInfoCallbackForNode(openInBrowser, e.Node, onLayerClick.Invoke, onTimestampClick.Invoke);
+            view.AfterSelect += (sender, e) => runInfoCallbackForNode(openInBrowser, e.Node, onLayerSelect.Invoke, onTimestampSelect.Invoke);
 
             //Set root nodes.
             resetNodes();
         }
 
         //Open current selected node in browser. Return process of current browser.
-        private System.Diagnostics.Process handleOpenInBrowserClick(object sender, EventArgs e)
+        private System.Diagnostics.Process handleOpenInBrowserClick(object sender, EventArgs e, Button openInBrowser)
         {
             if (view.SelectedNode == null || view.SelectedNode.Name == getLoadingNode().Name) return null;
 
@@ -105,7 +105,7 @@ namespace Ellipsis.Drive
                 }
 
                 System.Diagnostics.Process started = null;
-                runInfoCallbackForNode(view.SelectedNode, (block, layer) =>
+                runInfoCallbackForNode(openInBrowser, view.SelectedNode, (block, layer) =>
                 {
                     started = System.Diagnostics.Process.Start($"{baseUrl}/view?mapId={block.Value<string>("id")}");
                 }, (block, timestamp, visualization, protocol) =>
@@ -168,10 +168,13 @@ namespace Ellipsis.Drive
 
         //Looks at context of node to find all relevant information. Runs layerCb if it's
         //a shape and timestampCb if it's a map. See delegates for parameters of these cb's.
-        private void runInfoCallbackForNode(TreeNode node, LayerEvent layerCb, TimestampEvent timestampCb)
+        private void runInfoCallbackForNode(Button openInBrowser, TreeNode node, LayerEvent layerCb, TimestampEvent timestampCb)
         {
             JObject nodeTag = node.Tag as JObject;
             string baseUrl = "https://api.ellipsis-drive.com/v2/ogc";
+
+            if (!openInBrowser.Enabled)
+                openInBrowser.Enabled = true;
             if (nodeTag == null) return;
 
             if (nodeTag.Value<string>("method") != null)
@@ -220,7 +223,7 @@ namespace Ellipsis.Drive
                 JObject block = node.Parent.Tag as JObject;
                 //node tag is geometryLayer
                 layerCb(block, nodeTag);
-                string message = "Vector layers are no longer supported in ArcMap. The ArcGIS Pro plugin does support vector layers.";
+                string message = "Vector layers are not supported in ArcMap.";
                 string title = "Notice";
                 MessageBox.Show(message, title, MessageBoxButtons.OK);
             }

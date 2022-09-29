@@ -40,6 +40,7 @@ namespace ellipsis_drive_addin
             this.searchBox = new System.Windows.Forms.TextBox();
             this.searchButton = new System.Windows.Forms.Button();
             this.browserButton = new System.Windows.Forms.Button();
+            this.stopButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // username_box
@@ -121,6 +122,7 @@ namespace ellipsis_drive_addin
             // 
             // browserButton
             // 
+            this.browserButton.Enabled = false;
             this.browserButton.Location = new System.Drawing.Point(4, 256);
             this.browserButton.Name = "browserButton";
             this.browserButton.Size = new System.Drawing.Size(165, 23);
@@ -129,8 +131,20 @@ namespace ellipsis_drive_addin
             this.browserButton.UseVisualStyleBackColor = true;
             this.browserButton.Visible = false;
             // 
+            // stopButton
+            // 
+            this.stopButton.Location = new System.Drawing.Point(227, 17);
+            this.stopButton.Name = "stopButton";
+            this.stopButton.Size = new System.Drawing.Size(30, 23);
+            this.stopButton.TabIndex = 9;
+            this.stopButton.Text = "x";
+            this.stopButton.UseVisualStyleBackColor = true;
+            this.stopButton.Visible = false;
+            this.stopButton.Click += new System.EventHandler(this.stopButton_Click);
+            // 
             // TreeDrive
             // 
+            this.Controls.Add(this.stopButton);
             this.Controls.Add(this.browserButton);
             this.Controls.Add(this.searchButton);
             this.Controls.Add(this.searchBox);
@@ -160,5 +174,6 @@ namespace ellipsis_drive_addin
         private System.Windows.Forms.TextBox searchBox;
         private System.Windows.Forms.Button searchButton;
         private System.Windows.Forms.Button browserButton;
+        private System.Windows.Forms.Button stopButton;
     }
 }
