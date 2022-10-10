@@ -223,7 +223,7 @@ namespace Ellipsis.Drive
                 JObject block = node.Parent.Tag as JObject;
                 //node tag is geometryLayer
                 layerCb(block, nodeTag);
-                string message = "Vector layers are not supported in ArcMap.";
+                string message = "Vector layers are not supported in ArcGis Pro.";
                 string title = "Notice";
                 MessageBox.Show(message, title, MessageBoxButtons.OK);
             }

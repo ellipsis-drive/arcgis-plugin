@@ -119,6 +119,12 @@ namespace Ellipsis.Api
             MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
 
+        private void DisplayLoginError1()
+        {
+            string message = "Please check if you are connected to the internet.";
+            string title = "Login failed";
+            MessageBox.Show(message, title, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
         public void SetUsername(string text)
         {
             this.username = text;
@@ -247,13 +253,20 @@ namespace Ellipsis.Api
             httpWebRequest.ContentType = "application/json";
             httpWebRequest.KeepAlive = true;
             httpWebRequest.Headers.Add("Keep-Alive: 3155760000");
-
-            using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+            try
             {
-                string json = JsonConvert.SerializeObject(new { username = this.username, password = this.password });
-                streamWriter.Write(json);
-                streamWriter.Flush();
-                streamWriter.Close();
+                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                {
+                    string json = JsonConvert.SerializeObject(new { username = this.username, password = this.password });
+                    streamWriter.Write(json);
+                    streamWriter.Flush();
+                    streamWriter.Close();
+                }
+            }
+            catch (Exception e)
+            {
+                DisplayLoginError1();
+                return false;
             }
 
 
