@@ -215,6 +215,11 @@ namespace Ellipsis.Drive
                         Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
                         layer.AddWCS();
                     }
+                    else if (protocol == "WMTS")
+                    {
+                        Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                        layer.AddWMTS();
+                    }
                 }
             }
 
