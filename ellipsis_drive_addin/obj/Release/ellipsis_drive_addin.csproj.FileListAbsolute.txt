@@ -19,3 +19,4 @@ C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Releas
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Release\ESRI.ArcGIS.Animation.xml
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\obj\Release\ellipsis_drive_addin.csproj.AssemblyReference.cache
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\obj\Release\ellipsis_drive_addin.csproj.CopyComplete
+C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Release\ellipsis_drive_addin.tlb

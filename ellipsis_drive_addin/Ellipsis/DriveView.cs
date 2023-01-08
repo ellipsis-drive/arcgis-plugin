@@ -190,47 +190,69 @@ namespace Ellipsis.Drive
                 {
                     Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"));
                     layer.AddWMS();
+                    return;
                 }
 
                 if (protocol == "WMTS")
                 {
                     Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"));
                     layer.AddWMTS();
+                    return;
                 }
             }
 
-            else if (nodeTag.Value<string>("dateFrom") != null)
+            if (nodeTag.Value<string>("dateFrom") != null)
             {
                 //node tag is timestamp
                 //This is a protocol with no visualization or the WMTS protocol that doesn't render visualizations
                 if (node.Nodes.Count == 0)
                 {
                     string protocol = node.Text;
-                    JObject timestamp = nodeTag;
-                    JObject block = node.Parent.Parent.Tag as JObject;
-                    JObject maplayer = block["mapLayers"][0] as JObject;
-                    timestampCb(block, timestamp, null, protocol);
-                    if (protocol == "WCS")
+                    if (protocol == "WCS" || protocol == "WMTS")
                     {
-                        Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
-                        layer.AddWCS();
-                    }
-                    else if (protocol == "WMTS")
-                    {
-                        Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
-                        layer.AddWMTS();
+                        Debug.WriteLine("protocol: ");
+                        Debug.WriteLine(protocol);
+                        JObject timestamp = nodeTag;
+                        JObject block = node.Parent.Parent.Tag as JObject;
+                        JObject maplayer = block?["mapLayers"]?[0] as JObject;
+                        timestampCb(block, timestamp, null, protocol);
+                        if (protocol == "WCS")
+                        {
+                            Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                            layer.AddWCS();
+                            return;
+                        }
+                        else if (protocol == "WMTS")
+                        {
+                            Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                            layer.AddWMTS();
+                            return;
+                        }
                     }
                 }
             }
 
-            else if (nodeTag.Value<JObject>("extent") != null)
+            if (nodeTag.Value<JObject>("extent") != null)
             {
+                string protocol = node.Text;
                 JObject block = node.Parent.Tag as JObject;
-                //node tag is geometryLayer
-                layerCb(block, nodeTag);
-                string message = "Vector layers are not supported in ArcGis Pro.";
-                string title = "Notice";
-                MessageBox.Show(message, title, MessageBoxButtons.OK);
+                if (protocol == "WMTS")
+                {
+                    JObject timestamp = nodeTag;
+                    JObject maplayer = block["mapLayers"][0] as JObject;
+                    timestampCb(block, timestamp, null, protocol);
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                    layer.AddWMTS();
+                    return;
+                }
+                else
+                {
+                    //node tag is geometryLayer
+                    layerCb(block, nodeTag);
+                    string message = "Vector layers are not supported in ArcGis Pro.";
+                    string title = "Notice";
+                    MessageBox.Show(message, title, MessageBoxButtons.OK);
+                }
             }
         }
 
@@ -464,8 +486,6 @@ namespace Ellipsis.Drive
             string nextFolderPageStart = null;
             do
             {
-                Debug.WriteLine("parent.name: ", parent.Name);
-                Debug.WriteLine("parent.level: ", parent.Level.ToString());
                 JObject nestedFolders = connect.GetPath(parent.Name, true, nextFolderPageStart, parent.Level == 0);
                 if (nestedFolders == null)
                     return null;
