@@ -1,4 +1,5 @@
 ﻿using Ellipsis.Api;
+using ellipsis_drive_addin;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -18,6 +19,8 @@ namespace Ellipsis.Drive
 
     class DriveView
     {
+        /* Some tuple lists to keep track of layers added */
+
         private System.Windows.Forms.TreeView view;
         private Connect connect;
         private TextBox searchInput;
@@ -140,10 +143,11 @@ namespace Ellipsis.Drive
         //Resets nodes to the three root nodes.
         public void resetNodes()
         {
-            view.Nodes.Clear();
+            if (view != null && view.Nodes != null && view.Nodes.Count > 0)
+                view.Nodes.Clear();
             view.Nodes.AddRange(new TreeNode[] {
             getNode("My Drive", "myMaps"),
-            getNode("Shared", "shared"),
+            getNode("Shared with me", "shared"),
             getNode("Favorites", "favorites")
         });
 
@@ -181,7 +185,6 @@ namespace Ellipsis.Drive
             {
                 //node tag is visualization
                 string protocol = node.Parent.Name;
-                Debug.WriteLine("Protocol: {0}", protocol);
                 JObject timestamp = node.Parent.Parent.Tag as JObject;
                 JObject block = node.Parent.Parent.Parent.Tag as JObject;
                 JObject maplayer = block["mapLayers"][0] as JObject;
@@ -210,8 +213,6 @@ namespace Ellipsis.Drive
                     string protocol = node.Text;
                     if (protocol == "WCS" || protocol == "WMTS")
                     {
-                        Debug.WriteLine("protocol: ");
-                        Debug.WriteLine(protocol);
                         JObject timestamp = nodeTag;
                         JObject block = node.Parent.Parent.Tag as JObject;
                         JObject maplayer = block?["mapLayers"]?[0] as JObject;
@@ -239,13 +240,16 @@ namespace Ellipsis.Drive
                 if (protocol == "WMTS")
                 {
                     JObject timestamp = nodeTag;
-                    JObject maplayer = block["mapLayers"][0] as JObject;
-                    timestampCb(block, timestamp, null, protocol);
-                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
-                    layer.AddWMTS();
-                    return;
+                    if (block["mapLayers"] != null)
+                    {
+                        JObject maplayer = block["mapLayers"][0] as JObject;
+                        timestampCb(block, timestamp, null, protocol);
+                        Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
+                        layer.AddWMTS();
+                        return;
+                    }
                 }
-                else
+                else if (protocol != "WMS" && protocol != "WCS")
                 {
                     //node tag is geometryLayer
                     layerCb(block, nodeTag);

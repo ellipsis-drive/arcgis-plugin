@@ -174,15 +174,20 @@ namespace Ellipsis.Api
 
         private void AddData(ILayer pLayer)
         {
-            Debug.WriteLine("Layer");
-            Debug.WriteLine(pLayer);
+            /*
             AppROT appRot = new AppROT();
             appRot.get_Item(0);
             IApplication myApp = appRot.get_Item(0);
             IMxDocument mxDocument = myApp.Document as IMxDocument;
-            IMap pMap = mxDocument.FocusMap;
-
+            */
+            IMap pMap = ArcMap.Document.ActiveView.FocusMap;//mxDocument.FocusMap;
+            for (int i = 0; i < pMap.LayerCount; ++i)
+            {
+                if (pMap.Layer[i].Name == pLayer.Name)
+                    return;
+            }
             pMap.AddLayer(pLayer);
+            
         }
 
         private string URL;
