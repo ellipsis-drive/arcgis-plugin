@@ -4,6 +4,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -41,6 +42,10 @@ namespace Ellipsis.Drive
             this.connect = connect;
             searchInput = new TextBox();
             searchInput.Visible = false;
+            images = new ImageList();
+            images.Images.Add(Image.FromFile("C:..\\..\\icons\\folder.jpg"));
+            images.Images.Add(Image.FromFile("C:..\\..\\icons\\raster.jpg"));
+            images.Images.Add(Image.FromFile(@"..\\..\\icons\\vector.jpg"));
             if (images != null && images.Images != null && images.Images.Count >= 3)
             {
                 view.ImageList = images;
