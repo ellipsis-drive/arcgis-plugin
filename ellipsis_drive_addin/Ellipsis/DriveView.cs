@@ -313,7 +313,7 @@ namespace Ellipsis.Drive
             }
             if (info.Value<JObject>("yourAccess").Value<int>("accessLevel") <= 0)
             {
-                folder.Text += " (access level too low)";
+                folder.Text += " (No access)";
                 return folder;
             }
 
