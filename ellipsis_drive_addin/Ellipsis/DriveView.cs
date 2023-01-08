@@ -449,7 +449,7 @@ namespace Ellipsis.Drive
                 block.StateImageIndex = 1;
                 if (timestamps.Count == 0)
                 {
-                    block.Text += " (map has no timestamps)";
+                    block.Text += " (Layer has no timestamps)";
                     return block;
                 }
 
@@ -457,7 +457,7 @@ namespace Ellipsis.Drive
 
                 if (timestampNodes.Count == 0)
                 {
-                    block.Text += " (map has no active timestamps)";
+                    block.Text += " (Layer has no active timestamps)";
                     return block;
                 }
 
