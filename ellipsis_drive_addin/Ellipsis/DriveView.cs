@@ -5,7 +5,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -43,9 +45,29 @@ namespace Ellipsis.Drive
             searchInput = new TextBox();
             searchInput.Visible = false;
             images = new ImageList();
-            images.Images.Add(Image.FromFile("C:..\\..\\icons\\folder.jpg"));
-            images.Images.Add(Image.FromFile("C:..\\..\\icons\\raster.jpg"));
-            images.Images.Add(Image.FromFile(@"..\\..\\icons\\vector.jpg"));
+            string iconDir = "../../Images";
+            if (!Directory.Exists(iconDir))
+            {
+                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+                UriBuilder uri = new UriBuilder(codeBase);
+                string path = Uri.UnescapeDataString(uri.Path);
+                if (Directory.Exists(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Images")))
+                {
+                    images.Images.Add(Image.FromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Images/folder.jpg")));
+                    images.Images.Add(Image.FromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Images/raster.jpg")));
+                    images.Images.Add(Image.FromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "Images/vector.jpg")));
+                }
+            }
+            else
+            {
+                string codeBase = Assembly.GetExecutingAssembly().CodeBase;
+                UriBuilder uri = new UriBuilder(codeBase);
+                string path = Uri.UnescapeDataString(uri.Path);
+                Debug.WriteLine(Path.GetDirectoryName(path));
+                images.Images.Add(Image.FromFile(@"../../Images/folder.jpg"));
+                images.Images.Add(Image.FromFile(@"../../Images/raster.jpg"));
+                images.Images.Add(Image.FromFile(@"../../Images/vector.jpg"));
+            }
             if (images != null && images.Images != null && images.Images.Count >= 3)
             {
                 view.ImageList = images;
@@ -159,8 +181,11 @@ namespace Ellipsis.Drive
             foreach (TreeNode rootFolder in view.Nodes)
             {
                 rootFolder.Nodes.Add(getLoadingNode());
-                rootFolder.ImageIndex = 0;
-                rootFolder.SelectedImageIndex = 0;
+                if (view.ImageList != null)
+                {
+                    rootFolder.ImageIndex = 0;
+                    rootFolder.SelectedImageIndex = 0;
+                }
             }
         }
 
@@ -279,15 +304,27 @@ namespace Ellipsis.Drive
         //Constructs a treenode.
         private TreeNode getNode(string name, string id = null, object tag = null)
         {
-            return new TreeNode
+            if (view.ImageList != null)
             {
-                Text = name,
-                Name = id,
-                Tag = tag,
-                ImageIndex = 3,
-                SelectedImageIndex = 3,
-                StateImageIndex = 3
-            };
+                return new TreeNode
+                {
+                    Text = name,
+                    Name = id,
+                    Tag = tag,
+                    ImageIndex = 3,
+                    SelectedImageIndex = 3,
+                    StateImageIndex = 3
+                };
+            }
+            else
+            {
+                return new TreeNode
+                {
+                    Text = name,
+                    Name = id,
+                    Tag = tag,
+                };
+            }
         }
 
         //Constructs a loading treenode.
@@ -306,10 +343,12 @@ namespace Ellipsis.Drive
         {
             TreeNode folder = getNode(info.Value<string>("name"), info.Value<string>("id"));
             folder.Tag = info;
-            folder.ImageIndex = 0;
-            folder.SelectedImageIndex = 0;
-            folder.StateImageIndex = 0;
-
+            if (view.ImageList != null)
+            {
+                folder.ImageIndex = 0;
+                folder.SelectedImageIndex = 0;
+                folder.StateImageIndex = 0;
+            }
             if (info.Value<bool>("deleted"))
             {
                 folder.Text += " (folder deleted)";
@@ -432,9 +471,12 @@ namespace Ellipsis.Drive
             if (info.Value<string>("type") == "shape")
             {
                 JArray layers = info.Value<JArray>("geometryLayers");
-                block.ImageIndex = 2;
-                block.SelectedImageIndex = 2;
-                block.StateImageIndex = 2;
+                if (view.ImageList != null)
+                {
+                    block.ImageIndex = 2;
+                    block.SelectedImageIndex = 2;
+                    block.StateImageIndex = 2;
+                }
                 if (layers.Count == 0)
                 {
                     block.Text += " (shape has no layers)";
@@ -453,9 +495,12 @@ namespace Ellipsis.Drive
             else if (info.Value<string>("type") == "map")
             {
                 JArray timestamps = info.Value<JArray>("timestamps");
-                block.ImageIndex = 1;
-                block.SelectedImageIndex = 1;
-                block.StateImageIndex = 1;
+                if (view.ImageList != null)
+                {
+                    block.ImageIndex = 1;
+                    block.SelectedImageIndex = 1;
+                    block.StateImageIndex = 1;
+                }
                 if (timestamps.Count == 0)
                 {
                     block.Text += " (Layer has no timestamps)";

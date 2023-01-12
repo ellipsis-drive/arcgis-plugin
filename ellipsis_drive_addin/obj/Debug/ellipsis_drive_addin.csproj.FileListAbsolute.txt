@@ -21,4 +21,7 @@ C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\obj\Debug\
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\obj\Debug\ellipsis_drive_addin.csprojAssemblyReference.cache
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\ESRI.ArcGIS.Desktop.AddIns.dll
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\ellipsis_drive_addin.tlb
+C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\Images\folder.jpg
+C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\Images\raster.jpg
+C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\Images\vector.jpg
 C:\Users\ROCVA\source\repos\ellipsis_drive_addin\ellipsis_drive_addin\bin\Debug\ellipsis_drive_addin.esriAddIn
