@@ -56,20 +56,27 @@ namespace Ellipsis.Api
 
         public void AddWMS()
         {
-            IPropertySet propSet = new PropertySetClass();
-            
-            IWMSGroupLayer wmsMapLayer = new WMSMapLayer() as IWMSGroupLayer;
-            IWMSConnectionName connName = new WMSConnectionName();
+            try
+            {
+                IPropertySet propSet = new PropertySetClass();
 
-            propSet.SetProperty("URL", this.url);
-            propSet.SetProperty("LayerName", ids);
-            propSet.SetProperty("SRS", "EPSG:3857");
+                IWMSGroupLayer wmsMapLayer = new WMSMapLayer() as IWMSGroupLayer;
+                IWMSConnectionName connName = new WMSConnectionName();
 
-            connName.ConnectionProperties = propSet;
+                propSet.SetProperty("URL", this.url);
+                propSet.SetProperty("LayerName", ids);
+                propSet.SetProperty("SRS", "EPSG:3857");
 
-            IDataLayer dataLayer = (IDataLayer)wmsMapLayer;
-            dataLayer.Connect((IName)connName);
-            AddData((ILayer)wmsMapLayer);
+                connName.ConnectionProperties = propSet;
+
+                IDataLayer dataLayer = (IDataLayer)wmsMapLayer;
+                dataLayer.Connect((IName)connName);
+                AddData((ILayer)wmsMapLayer);
+            }
+            catch (Exception e)
+            {
+                return;
+            }
         }
 
         public void AddWCS()
@@ -174,20 +181,32 @@ namespace Ellipsis.Api
 
         private void AddData(ILayer pLayer)
         {
-            /*
-            AppROT appRot = new AppROT();
-            appRot.get_Item(0);
-            IApplication myApp = appRot.get_Item(0);
-            IMxDocument mxDocument = myApp.Document as IMxDocument;
-            */
+            // Get current map
             IMap pMap = ArcMap.Document.ActiveView.FocusMap;//mxDocument.FocusMap;
+
+            // Check if there already exists a layer in the map with this ID
             for (int i = 0; i < pMap.LayerCount; ++i)
             {
-                if (pMap.Layer[i].Name == pLayer.Name)
+                ILayerExtensions mapExtension = pMap.Layer[i] as ILayerExtensions;
+                IServerLayerExtension mapServerExtension = mapExtension.get_Extension(0) as IServerLayerExtension;
+                if (mapServerExtension.ServerProperties.GetProperty("ServiceLayerID") as string == ids)
                     return;
+                Debug.WriteLine(mapServerExtension.ServerProperties.GetProperty("ServiceLayerID"));
             }
+
+            // Initialize layer ID, so we can keep track if it's already added:
+            ILayerExtensions pExtension = pLayer as ILayerExtensions;
+            IServerLayerExtension pServerExtension = pExtension.get_Extension(0) as IServerLayerExtension;
+            IPropertySet pSet = new PropertySet();
+            pSet.SetProperty("ServiceLayerID", ids);
+            pServerExtension.ServerProperties = pSet;
+
             pMap.AddLayer(pLayer);
-            
+            for (int i = 0; i < pMap.LayerCount; ++i)
+            {
+                pMap.Layer[i].Visible = true;
+            }
+
         }
 
         private string URL;

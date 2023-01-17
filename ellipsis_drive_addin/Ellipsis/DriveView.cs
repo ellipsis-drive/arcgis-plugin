@@ -283,7 +283,7 @@ namespace Ellipsis.Drive
                 {
                     //node tag is geometryLayer
                     layerCb(block, nodeTag);
-                    string message = "Vector layers are not supported in ArcGis Pro.";
+                    string message = "Vector layers are not supported in ArcMap.";
                     string title = "Notice";
                     MessageBox.Show(message, title, MessageBoxButtons.OK);
                 }
