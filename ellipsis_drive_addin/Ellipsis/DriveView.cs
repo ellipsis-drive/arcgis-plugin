@@ -221,8 +221,8 @@ namespace Ellipsis.Drive
                 timestampCb(block, timestamp, nodeTag, protocol);
                 if (protocol == "WMS")
                 {
-                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"));
-                    layer.AddWMS();
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"), node.Parent.Parent.Text, maplayer.Value<string>("name"));
+                    layer.AddWMSSingle();
                     return;
                 }
 
@@ -238,51 +238,33 @@ namespace Ellipsis.Drive
             {
                 //node tag is timestamp
                 //This is a protocol with no visualization or the WMTS protocol that doesn't render visualizations
-                if (node.Nodes.Count == 0)
+                string protocol = node.Text;
+                JObject timestamp = nodeTag;
+                JObject block = node.Parent.Parent.Tag as JObject;
+                JObject maplayer = block?["mapLayers"]?[0] as JObject;
+                timestampCb(block, timestamp, null, protocol);
+                if (protocol == "WMS")
                 {
-                    string protocol = node.Text;
-                    if (protocol == "WCS" || protocol == "WMTS")
-                    {
-                        JObject timestamp = nodeTag;
-                        JObject block = node.Parent.Parent.Tag as JObject;
-                        JObject maplayer = block?["mapLayers"]?[0] as JObject;
-                        timestampCb(block, timestamp, null, protocol);
-                        if (protocol == "WCS")
-                        {
-                            Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
-                            layer.AddWCS();
-                            return;
-                        }
-                        else if (protocol == "WMTS")
-                        {
-                            Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
-                            layer.AddWMTS();
-                            return;
-                        }
-                    }
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"), node.Parent.Parent.Text, maplayer.Value<string>("name"));
+                    layer.AddWMSGroup();
+                    return;
+                }
+                else if (protocol == "WMTS")
+                {
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"));
+                    layer.AddWMTS();
+                    return;
                 }
             }
 
             if (nodeTag.Value<JObject>("extent") != null)
             {
-                string protocol = node.Text;
+                string protocol = node.Parent.Text;
                 JObject block = node.Parent.Tag as JObject;
-                if (protocol == "WMTS")
+                //node tag is geometryLayer
+                layerCb(block, nodeTag);
+                if (block.Value<string>("type") == "shape")
                 {
-                    JObject timestamp = nodeTag;
-                    if (block["mapLayers"] != null)
-                    {
-                        JObject maplayer = block["mapLayers"][0] as JObject;
-                        timestampCb(block, timestamp, null, protocol);
-                        Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"));
-                        layer.AddWMTS();
-                        return;
-                    }
-                }
-                else if (protocol != "WMS" && protocol != "WCS")
-                {
-                    //node tag is geometryLayer
-                    layerCb(block, nodeTag);
                     string message = "Vector layers are not supported in ArcMap.";
                     string title = "Notice";
                     MessageBox.Show(message, title, MessageBoxButtons.OK);
