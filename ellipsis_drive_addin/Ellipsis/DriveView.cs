@@ -204,6 +204,7 @@ namespace Ellipsis.Drive
         //a shape and timestampCb if it's a map. See delegates for parameters of these cb's.
         private void runInfoCallbackForNode(Button openInBrowser, TreeNode node, LayerEvent layerCb, TimestampEvent timestampCb)
         {
+            Cursor.Current = Cursors.WaitCursor;
             JObject nodeTag = node.Tag as JObject;
             string baseUrl = "https://api.ellipsis-drive.com/v2/ogc";
 
@@ -223,6 +224,7 @@ namespace Ellipsis.Drive
                 {
                     Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"), node.Parent.Parent.Parent.Text, maplayer.Value<string>("name"), _date_to: timestamp.Value<string>("dateTo"));
                     layer.AddWMSSingle();
+                    Cursor.Current = Cursors.Default;
                     return;
                 }
 
@@ -230,6 +232,7 @@ namespace Ellipsis.Drive
                 {
                     Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"), timestamp.Value<string>("dateFrom"), _timestamp:timestamp.Value<string>("timestamp"), _vis_name:maplayer.Value<string>("name"), _date_to: timestamp.Value<string>("dateTo"));
                     layer.AddWMTS(false);
+                    Cursor.Current = Cursors.Default;
                     return;
                 }
             }
@@ -247,16 +250,18 @@ namespace Ellipsis.Drive
                 {
                     Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"), node.Parent.Parent.Text, maplayer.Value<string>("name"), _date_to: timestamp.Value<string>("dateTo"));
                     layer.AddWMSGroup();
+                    Cursor.Current = Cursors.Default;
                     return;
                 }
                 else if (protocol == "WMTS")
                 {
                     Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"), _vis_name:maplayer.Value<string>("name"), _date_to: timestamp.Value<string>("dateTo"));
                     layer.AddWMTS(true);
+                    Cursor.Current = Cursors.Default;
                     return;
                 }
             }
-
+            Cursor.Current = Cursors.Default;
             if (nodeTag.Value<JObject>("extent") != null)
             {
                 string protocol = node.Parent.Text;
