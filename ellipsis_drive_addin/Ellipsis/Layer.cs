@@ -17,7 +17,7 @@ namespace Ellipsis.Api
     {
         public Layers() { }
 
-        public Layers(string _URL, string _map_id, string _login_token, string _protocol, string _timestamp_id, string _layer_id, string _date_from = null, string _timestamp = null, string _map_name = null, string _vis_name = null)
+        public Layers(string _URL, string _map_id, string _login_token, string _protocol, string _timestamp_id, string _layer_id, string _date_from = null, string _timestamp = null, string _map_name = null, string _vis_name = null, string _date_to = null)
         {
             this.URL = _URL;
             this.map_id = _map_id;
@@ -29,9 +29,9 @@ namespace Ellipsis.Api
             vis_name = _vis_name;
             this.ids = string.Format("{0}_{1}", this.timestamp_id, layer_id);
             this.url = string.Format("{0}/{1}/{2}/{3}", URL, protocol, map_id, login_token);
-            if (_date_from != null && _timestamp != null)
+            if (_date_to != null && _timestamp != null)
             {
-                string[] tokens = _date_from.Split(' ');
+                string[] tokens = _date_to.Split(' ');
                 this.stamp_name = tokens[0].Split('/')[2] + '-' + tokens[0].Split('/')[0] + '-' + tokens[0].Split('/')[1] + '_' + _timestamp;
             }
             if (protocol == "wms" || protocol == "wcs")
@@ -40,7 +40,7 @@ namespace Ellipsis.Api
             connect = new Connect();
         }
 
-        public bool checkDuplicate(IWMSServiceDescription wmsServiceDescription)
+        public bool checkDuplicate(IWMSServiceDescription wmsServiceDescription, string toc_name = null)
         {
             var mapLayers = ArcMap.Document.ActiveView.FocusMap.Layers;
             for (var layer = mapLayers.Next(); layer != null; layer = mapLayers.Next())
@@ -52,6 +52,8 @@ namespace Ellipsis.Api
                     ICompositeLayer rootComp = layer as ICompositeLayer;
                     for (int j = 0; j < rootComp.Count; ++j)
                     {
+                        if (rootComp.Layer[j].Name == toc_name)
+                            return true;
                         if (rootComp.Layer[j].Name == map_name)
                         {
                             // Map exists, check if timestamp exists
@@ -64,6 +66,8 @@ namespace Ellipsis.Api
                                 {
                                     // Timestamp exists, check if visualization exists
                                     ICompositeLayer stampComp = mapComp.Layer[x] as ICompositeLayer;
+                                    // If a single visualization is added, mapComp will be null but if the rootcomp.Layer[j].Name is already
+                                    // in the TOC, the single visualization is already added.
                                     if (stampComp == null)
                                         continue;
                                     for (int y = 0; y < stampComp.Count; ++y)
@@ -89,8 +93,28 @@ namespace Ellipsis.Api
             return false;
         }
 
-        public void AddWMTS()
+        private bool checkWMTSDuplicate(IWMTSServiceDescription wmtsServiceDescription, string toc_name)
         {
+            var mapLayers = ArcMap.Document.ActiveView.FocusMap.Layers;
+            for (var layer = mapLayers.Next(); layer != null; layer = mapLayers.Next())
+            {
+                if (layer.Name == wmtsServiceDescription.WMTSTitle)
+                {
+                    IGroupLayer rootGroup = layer as IGroupLayer;
+                    ICompositeLayer rootComp = layer as ICompositeLayer;
+                    for (int j = 0; j < rootComp.Count; ++j)
+                    {
+                        if (rootComp.Layer[j].Name == toc_name)
+                            return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public void AddWMTS(bool group)
+        {
+            bool empty = true;
             IPropertySet propSet = new PropertySetClass();
             IGroupLayer groupLayer = new GroupLayer();
             propSet.SetProperty("URL", url);
@@ -100,17 +124,28 @@ namespace Ellipsis.Api
             for (int i = 0; i < wmtsServiceDescription.LayerDescriptionCount; i++)
             {
                 IWMTSLayerDescription layerDescription = wmtsServiceDescription.LayerDescription[i];
+                Debug.WriteLine(layerDescription.Title);
+                Debug.WriteLine(vis_name, stamp_name);
+                if (group == false)
+                    if (!layerDescription.Title.Contains(vis_name) || !layerDescription.Title.Contains(stamp_name))
+                        continue;
+                if (group == true)
+                    if (!layerDescription.Title.Contains(stamp_name))
+                        continue;
+                if (checkWMTSDuplicate(wmtsServiceDescription, layerDescription.Title))
+                    continue;
                 IWMTSLayer wmtsLayer = new WMTSLayer();
-
                 IPropertySet propSet_1 = new PropertySetClass();
                 propSet_1.SetProperty("URL", url);
                 propSet_1.SetProperty("LayerName", layerDescription.Identifier);
-
                 WMTSConnectionName connectionName = new WMTSConnectionName();
                 connectionName.ConnectionProperties = propSet_1;
                 wmtsLayer.Connect((IName)connectionName);
                 groupLayer.Add(wmtsLayer as ILayer);
+                empty = false;
             }
+            if (empty)
+                return;
             groupLayer.Name = wmtsServiceDescription.WMTSTitle;
             IMap pMap = ArcMap.Document.ActiveView.FocusMap;
             pMap.AddLayer(groupLayer as ILayer);
@@ -120,6 +155,7 @@ namespace Ellipsis.Api
         {
             IPropertySet propSet = new PropertySetClass();
             IWMSGroupLayer wmsMapLayer = new WMSMapLayer() as WMSGroupLayer;
+            IGroupLayer groupLayer = new GroupLayer();
             IWMSConnectionName connName = new WMSConnectionName();
             propSet.SetProperty("URL", this.url);
             propSet.SetProperty("LayerName", ids);
@@ -129,9 +165,13 @@ namespace Ellipsis.Api
             dataLayer.Connect((IName)connName);
             IWMSServiceDescription wmsServiceDescription = wmsMapLayer.WMSServiceDescription;
             IMap pMap = ArcMap.Document.ActiveView.FocusMap;
-            if (checkDuplicate(wmsServiceDescription) == false)
-                // First extend tree structure for single nodes, so we can check duplicates...
+            string toc_name = String.Format("{0}_{1}_{2}", map_name, stamp_name, vis_name);
+            if (checkDuplicate(wmsServiceDescription, toc_name) == false)
+            {
+                wmsMapLayer.Layer[0].Name = toc_name;
+                wmsMapLayer.Layer[0].Visible = true;
                 pMap.AddLayer(wmsMapLayer as ILayer);
+            }
         }
 
         public void AddWMSGroup()

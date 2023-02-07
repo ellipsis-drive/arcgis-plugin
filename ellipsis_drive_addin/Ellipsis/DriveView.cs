@@ -221,15 +221,15 @@ namespace Ellipsis.Drive
                 timestampCb(block, timestamp, nodeTag, protocol);
                 if (protocol == "WMS")
                 {
-                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"), node.Parent.Parent.Text, maplayer.Value<string>("name"));
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"), node.Parent.Parent.Parent.Text, maplayer.Value<string>("name"), _date_to: timestamp.Value<string>("dateTo"));
                     layer.AddWMSSingle();
                     return;
                 }
 
                 if (protocol == "WMTS")
                 {
-                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"));
-                    layer.AddWMTS();
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"), timestamp.Value<string>("dateFrom"), _timestamp:timestamp.Value<string>("timestamp"), _vis_name:maplayer.Value<string>("name"), _date_to: timestamp.Value<string>("dateTo"));
+                    layer.AddWMTS(false);
                     return;
                 }
             }
@@ -245,14 +245,14 @@ namespace Ellipsis.Drive
                 timestampCb(block, timestamp, null, protocol);
                 if (protocol == "WMS")
                 {
-                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"), node.Parent.Parent.Text, maplayer.Value<string>("name"));
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), nodeTag.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"), node.Parent.Parent.Text, maplayer.Value<string>("name"), _date_to: timestamp.Value<string>("dateTo"));
                     layer.AddWMSGroup();
                     return;
                 }
                 else if (protocol == "WMTS")
                 {
-                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"));
-                    layer.AddWMTS();
+                    Layers layer = new Layers(baseUrl, block.Value<string>("id"), this.connect.GetLoginToken(), protocol, timestamp.Value<string>("id"), maplayer.Value<string>("id"), timestamp.Value<string>("dateFrom"), timestamp.Value<string>("timestamp"), _vis_name:maplayer.Value<string>("name"), _date_to: timestamp.Value<string>("dateTo"));
+                    layer.AddWMTS(true);
                     return;
                 }
             }
