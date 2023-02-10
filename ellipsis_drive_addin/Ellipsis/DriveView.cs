@@ -8,6 +8,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -359,6 +360,9 @@ namespace Ellipsis.Drive
         //Converts layers into a list of corresponding treenodes.
         private List<TreeNode> getLayerNodes(JArray layers)
         {
+            string node_name;
+            //Regex to keep naming convention in web app:
+            Regex rx = new Regex(@"\d{2,2}/\d{2,2}/\d{4,4} \d{2,2}:\d{2,2}:\d{2,2}");
             List<TreeNode> nodes = new List<TreeNode>();
             var children = layers.Children<JObject>();
             foreach (var child in children)
@@ -366,7 +370,13 @@ namespace Ellipsis.Drive
                 //TODO parse {availability: {blocked: false}} ??
                 if (child.Value<bool>("deleted"))
                     continue;
-                TreeNode parsedChild = getNode(child.Value<string>("name"), child.Value<string>("id"));
+                node_name = child.Value<string>("name");
+                Debug.WriteLine(node_name, "node_name: ");
+                if (rx.IsMatch(node_name))
+                {
+                    node_name += " - " + node_name;
+                }
+                TreeNode parsedChild = getNode(node_name, child.Value<string>("id"));
                 parsedChild.Tag = child;
                 nodes.Add(parsedChild);
             }
